@@ -168,8 +168,9 @@ export default function Home() {
 
       <footer>
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <div className="border-t border-gray-200 py-8 text-center text-sm text-gray-500 sm:text-left">
-            <span className="block sm:inline">&copy; 2023 Wild Tangz</span> <span className="block sm:inline">All rights reserved.</span>
+          <div className="flex flex-wrap md:flex-nowrap justify-between border-t border-gray-200 py-8 gap-4 text-center text-sm text-gray-500">
+            <span className="block sm:inline mx-auto md:mx-0">&copy; 2023 Wild Tangz. All rights reserved.</span>
+            <span className="block sm:inline mx-auto md:mx-0">Questions? Get in touch via <a href="https://discord.gg/wildtangz" className="text-tangz-blue hover:underline">Wild Tangz Discord</a></span>
           </div>
         </div>
       </footer>
