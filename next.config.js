@@ -1,4 +1,21 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'unisat.io',
+        port: '',
+        pathname: '/img/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.website-files.com',
+        port: '',
+        pathname: '/624b08d53d7ac60ccfc11d8d/**',
+      },
+    ],
+  },
+}
 
 module.exports = nextConfig

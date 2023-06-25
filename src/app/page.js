@@ -8,10 +8,13 @@ import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
 import { GroupedButton, SimpleButton } from '../components/buttons.jsx';
+import { TextInput } from '../components/inputs.jsx';
 import { Toggle } from '../components/toggle.jsx';
 
 const RECURSIVE_CONTENT_REGEXP = /\/content\/[a-z0-9]+/g;
 const RECURSIVE_CONTENT_HOST = 'https://ord.io'
+
+const DEFAULT_FEES_API = 'https://mempool.space/api/v1/fees/recommended';
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">
@@ -32,6 +35,25 @@ const MARKUP_MAPPINGS = {
   svg: xml()
 };
 
+async function getFeesFor(inscriptionSpeed) {
+  const feesApi = await fetch(DEFAULT_FEES_API);
+  if (feesApi.status !== 200) {
+    throw 'Could not retrieve fees, please try again soon.';
+  }
+
+  const fees = await feesApi.json();
+  if (!(inscriptionSpeed in fees)) {
+    throw `Could not find matching fee for "${inscriptionSpeed}"`;
+  }
+
+  return fees[inscriptionSpeed];
+}
+
+async function placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
+  const fee = await getFeesFor(inscriptionSpeed);
+  console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
+}
+
 function recursiveExpandedHtmlFor(value) {
   return value.replaceAll(RECURSIVE_CONTENT_REGEXP, `${RECURSIVE_CONTENT_HOST}$&`);
 }
@@ -40,10 +62,13 @@ export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [markupType, setMarkupType] = useState('html');
+
   const [rareSats, setRareSats] = useState('random');
-  const [inscriptionSpeed, setInscriptionSpeed] = useState('60 mins');
+  const [inscriptionSpeed, setInscriptionSpeed] = useState('hourFee');
   const [paymentMethod, setPaymentMethod] = useState('invoice');
+  const [walletAddr, setWalletAddr] = useState('');
   const [ordinalsHtml, setOrdinalsHtml] = useState(DEFAULT_RECURSIVE_CODE);
+
   const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(ordinalsHtml));
   const [darkMode, setDarkMode] = useState(false);
 
@@ -54,8 +79,6 @@ export default function Home() {
     window.matchMedia('(prefers-color-scheme: dark)')
           .addEventListener('change', event => setDarkMode(event.matches));
   });
-
-  console.log(ordinalsHtml);
 
   return (
     <div className="min-h-screen">
@@ -116,27 +139,28 @@ export default function Home() {
                         <GroupedButton value="random" label="Random" type="right" currentValue={rareSats} setValue={setRareSats} />
                       </span>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 w-full">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
-                      <span className="isolate inline-flex rounded-md shadow-sm">
-                        <GroupedButton value="whenever" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="60 mins" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="30 mins" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="10 mins" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                      <span className="grid grid-cols-4 rounded-md shadow-sm">
+                        <GroupedButton value="economyFee" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="hourFee" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="halfHourFee" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="fastestFee" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
                       </span>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 w-full">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
-                      <span className="isolate inline-flex rounded-md shadow-sm">
-                        <GroupedButton value="xverse" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                        <GroupedButton value="unisat" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                        <GroupedButton value="invoice" label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                      <span className="grid grid-cols-3 rounded-md shadow-sm">
+                        <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                        <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                        <GroupedButton value="invoice" img={undefined} label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
                       </span>
+                      <div className={`${paymentMethod === 'invoice' ? '' : 'hidden'} mt-4`}>
+                        <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." setValue={setWalletAddr} />
+                      </div>
                     </div>
                     <div className="mt-4 flex justify-center">
-                      <button type="button" className="cursor-pointer bg-tangz-blue text-white rounded px-4 py-2 text-lg font-semibold shadow-sm hover:bg-tangs-blue-darker focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tangz-blue dark:bg-tangz-blue-darker">
-                        Inscribe
-                      </button>
+                      <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
                     </div>
                   </div>
                 </div>
