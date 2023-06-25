@@ -4,7 +4,11 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { Inter } from 'next/font/google';
 
+import { InformationalBox } from "../components/modals.jsx";
+
 const inter = Inter({ subsets: ['latin'] })
+
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 function Header() {
   return (
@@ -46,7 +50,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <Header />
-        {children}
+        <main className="pb-8">
+          <InformationalBox id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
+            <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
+          </InformationalBox>
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

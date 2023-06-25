@@ -4,7 +4,8 @@ import Image from 'next/image'
 
 export function SimpleButton(props) {
   return (
-    <button type="button" className={`${props.active ? 'bg-tangz-blue text-white dark:bg-tangz-blue-darker' : 'bg-gray-200 text-gray-400'} cursor-pointer rounded px-4 py-2 text-sm text-center font-semibold shadow-sm hover:bg-tangs-blue-darker focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tangz-blue`} disabled={!props.active} onClick={props.onClick}>
+    <button type="button" className={`${props.active ? 'bg-tangz-blue text-white dark:bg-tangz-blue-darker' : 'bg-gray-200 text-gray-400'} cursor-pointer rounded px-4 py-2 text-sm text-center font-semibold shadow-sm hover:bg-tangs-blue-darker focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tangz-blue ${props.extraClasses}`}
+            disabled={!props.active} onClick={props.onClick}>
       {props.label}
     </button>
   );

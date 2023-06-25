@@ -107,78 +107,76 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="pb-8">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <h1 className="sr-only">Page title</h1>
-          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
-            <div className="grid grid-cols-1 gap-4 lg:col-span-7">
-              <section aria-labelledby="section-1-title">
-                <h2 className="sr-only" id="section-1-title">Recursive Inscription Code</h2>
-                <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
-                  <div className="p-6">
-                    <CodeMirror
-                        value={ordinalsHtml}
-                        height="600px"
-                        theme={darkMode ? 'dark' : 'light'}
-                        onChange={(value, viewUpdate) => {
-                          setOrdinalsHtml(value);
-                          if (autoRefresh) {
-                            setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
-                          }
-                        }}
-                        extensions={[MARKUP_MAPPINGS[markupType]]}
-                      />
-                  </div>
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+        <h1 className="sr-only">Page title</h1>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
+          <div className="grid grid-cols-1 gap-4 lg:col-span-7">
+            <section aria-labelledby="section-1-title">
+              <h2 className="sr-only" id="section-1-title">Recursive Inscription Code</h2>
+              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
+                <div className="p-6">
+                  <CodeMirror
+                      value={ordinalsHtml}
+                      height="600px"
+                      theme={darkMode ? 'dark' : 'light'}
+                      onChange={(value, viewUpdate) => {
+                        setOrdinalsHtml(value);
+                        if (autoRefresh) {
+                          setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
+                        }
+                      }}
+                      extensions={[MARKUP_MAPPINGS[markupType]]}
+                    />
                 </div>
-              </section>
-            </div>
+              </div>
+            </section>
+          </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:col-span-5">
-              <section aria-labelledby="section-2-title">
-                <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
-                <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
-                  <div className="p-6">
-                    <frame className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
-                    <div className="mt-4 w-full">
-                      <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
-                      <span className="grid grid-cols-5 rounded-md shadow-sm">
-                        <GroupedButton value="2009" label="2009" type="left" currentValue={rareSats} setValue={setRareSats} />
-                        <GroupedButton value="2010" label="2010" type="center" currentValue={rareSats} setValue={setRareSats} />
-                        <GroupedButton value="2011" label="2011" type="center" currentValue={rareSats} setValue={setRareSats} />
-                        <GroupedButton value="block78" label="Block 78" type="center" currentValue={rareSats} setValue={setRareSats} />
-                        <GroupedButton value="random" label="Random" type="right" currentValue={rareSats} setValue={setRareSats} />
-                      </span>
-                    </div>
-                    <div className="mt-4 w-full">
-                      <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
-                      <span className="grid grid-cols-4 rounded-md shadow-sm">
-                        <GroupedButton value="economyFee" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="hourFee" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="halfHourFee" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                        <GroupedButton value="fastestFee" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                      </span>
-                    </div>
-                    <div className="mt-4 w-full">
-                      <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
-                      <span className="grid grid-cols-3 rounded-md shadow-sm">
-                        <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                        <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                        <GroupedButton value="invoice" img={undefined} label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                      </span>
-                      <div className={`${paymentMethod === 'invoice' ? '' : 'hidden'} mt-4`}>
-                        <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." setValue={setWalletAddr} />
-                      </div>
-                    </div>
-                    <div className="mt-4 flex justify-center">
-                      <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
+          <div className="grid grid-cols-1 gap-4 lg:col-span-5">
+            <section aria-labelledby="section-2-title">
+              <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
+              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
+                <div className="p-6">
+                  <frame className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
+                  <div className="mt-4 w-full">
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
+                    <span className="grid grid-cols-5 rounded-md shadow-sm">
+                      <GroupedButton value="2009" label="2009" type="left" currentValue={rareSats} setValue={setRareSats} />
+                      <GroupedButton value="2010" label="2010" type="center" currentValue={rareSats} setValue={setRareSats} />
+                      <GroupedButton value="2011" label="2011" type="center" currentValue={rareSats} setValue={setRareSats} />
+                      <GroupedButton value="block78" label="Block 78" type="center" currentValue={rareSats} setValue={setRareSats} />
+                      <GroupedButton value="random" label="Random" type="right" currentValue={rareSats} setValue={setRareSats} />
+                    </span>
+                  </div>
+                  <div className="mt-4 w-full">
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
+                    <span className="grid grid-cols-4 rounded-md shadow-sm">
+                      <GroupedButton value="economyFee" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                      <GroupedButton value="hourFee" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                      <GroupedButton value="halfHourFee" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                      <GroupedButton value="fastestFee" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                    </span>
+                  </div>
+                  <div className="mt-4 w-full">
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
+                    <span className="grid grid-cols-3 rounded-md shadow-sm">
+                      <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                      <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                      <GroupedButton value="invoice" img={undefined} label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                    </span>
+                    <div className={`${paymentMethod === 'invoice' ? '' : 'hidden'} mt-4`}>
+                      <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." setValue={setWalletAddr} />
                     </div>
                   </div>
+                  <div className="mt-4 flex justify-center">
+                    <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
+                  </div>
                 </div>
-              </section>
-            </div>
+              </div>
+            </section>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
