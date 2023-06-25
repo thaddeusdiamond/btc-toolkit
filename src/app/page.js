@@ -106,9 +106,9 @@ export default function Home() {
                 <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
                   <div className="p-6">
                     <frame className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
-                    <div className="mt-4">
+                    <div className="mt-4 w-full">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
-                      <span className="isolate inline-flex rounded-md shadow-sm">
+                      <span className="grid grid-cols-5 rounded-md shadow-sm">
                         <GroupedButton value="2009" label="2009" type="left" currentValue={rareSats} setValue={setRareSats} />
                         <GroupedButton value="2010" label="2010" type="center" currentValue={rareSats} setValue={setRareSats} />
                         <GroupedButton value="2011" label="2011" type="center" currentValue={rareSats} setValue={setRareSats} />
