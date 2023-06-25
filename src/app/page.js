@@ -44,7 +44,7 @@ export default function Home() {
   const [inscriptionSpeed, setInscriptionSpeed] = useState('60 mins');
   const [paymentMethod, setPaymentMethod] = useState('invoice');
   const [ordinalsHtml, setOrdinalsHtml] = useState(DEFAULT_RECURSIVE_CODE);
-  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(DEFAULT_RECURSIVE_CODE));
+  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(ordinalsHtml));
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function Home() {
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
             <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
-            <SimpleButton label="Refresh" active={autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(ordinalsHtml))} />
+            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(ordinalsHtml))} />
           </div>
         </div>
       </div>
