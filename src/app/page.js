@@ -17,6 +17,10 @@ const RECURSIVE_CONTENT_HOST = 'https://ord.io'
 
 const DEFAULT_FEES_API = 'https://mempool.space/api/v1/fees/recommended';
 
+const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
+const DEFAULT_FILE_NAME = 'recursive_inscription.html';
+const DEFAULT_REFERRAL_CODE = 'abcdef'
+
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -32,9 +36,44 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 </html>
 `;
 const MARKUP_MAPPINGS = {
-  html: html(),
-  svg: xml()
+  'text/html': html(),
+  'image/svg+xml': xml()
 };
+
+async function getOrderInfoFor(fee, ordinalsHtml, markupType, rareSats, walletAddr) {
+  console.log( btoa(ordinalsHtml));
+  const orderSubmissionData = {
+    files: [{
+      name: DEFAULT_FILE_NAME,
+      size: ordinalsHtml.length,
+      dataURL: `data:${markupType};base64,${btoa(ordinalsHtml)}`
+    }],
+    receiveAddress: walletAddr,
+    fee: fee,
+    lowPostage: false,
+    rareSats: rareSats,
+    referral: DEFAULT_REFERRAL_CODE,
+    additionalFee: 1000
+  }
+  console.log(JSON.stringify(orderSubmissionData));
+  const orderSubmissionResp = await fetch(DEFAULT_ORDER_API, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderSubmissionData)
+  })
+  if (orderSubmissionResp.status !== 200) {
+    throw `Could not submit order (${orderSubmissionResp.status}): ${orderSubmissionResp.statusText}`;
+  }
+
+  const orderSubmission = await orderSubmissionResp.json();
+  if (orderSubmission.status === 'error') {
+    throw `Could not submit order: ${orderSubmission.error}`;
+  }
+
+  return orderSubmission.charge;
+}
 
 async function getFeesFor(inscriptionSpeed) {
   const feesApi = await fetch(DEFAULT_FEES_API);
@@ -50,13 +89,18 @@ async function getFeesFor(inscriptionSpeed) {
   return fees[inscriptionSpeed];
 }
 
-async function placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
+async function placeOrderFor(ordinalsHtml, markupType, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
   try {
     const fee = await getFeesFor(inscriptionSpeed);
     console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
-    // Should pop up a modal here
-    toast.success("Successfully submitted!");
+
+    // TODO: Plug in xverse/unisat here
+    // TODO: Validate the wallet address using btcvalidate func
+
+    const ordinalsOrder = await getOrderInfoFor(fee, ordinalsHtml, markupType, rareSats, walletAddr);
+    console.log(JSON.stringify(ordinalsOrder));
   } catch (err) {
+    console.log(err);
     toast.error(JSON.stringify(err));
   }
 }
@@ -68,7 +112,7 @@ function recursiveExpandedHtmlFor(value) {
 export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [markupType, setMarkupType] = useState('html');
+  const [markupType, setMarkupType] = useState('text/html');
 
   const [rareSats, setRareSats] = useState('random');
   const [inscriptionSpeed, setInscriptionSpeed] = useState('hourFee');
@@ -96,8 +140,8 @@ export default function Home() {
         <div className="grid grid-cols-12 items-center gap-8">
           <div className="col-span-5 md:col-span-7">
             <span className="isolate inline-flex rounded-md shadow-sm">
-              <GroupedButton value="html" label="HTML" type="left" currentValue={markupType} setValue={setMarkupType} />
-              <GroupedButton value="svg" label="SVG" type="right" currentValue={markupType} setValue={setMarkupType} />
+              <GroupedButton value="text/html" label="HTML" type="left" currentValue={markupType} setValue={setMarkupType} />
+              <GroupedButton value="image/svg+xml" label="SVG" type="right" currentValue={markupType} setValue={setMarkupType} />
             </span>
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
@@ -169,7 +213,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="mt-4 flex justify-center">
-                    <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
+                    <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, markupType, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
                   </div>
                 </div>
               </div>
