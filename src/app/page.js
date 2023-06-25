@@ -4,6 +4,7 @@ import Image from 'next/image'
 import CodeMirror from '@uiw/react-codemirror';
 
 import { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
@@ -50,8 +51,14 @@ async function getFeesFor(inscriptionSpeed) {
 }
 
 async function placeOrderFor(ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
-  const fee = await getFeesFor(inscriptionSpeed);
-  console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
+  try {
+    const fee = await getFeesFor(inscriptionSpeed);
+    console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
+    // Should pop up a modal here
+    toast.success("Successfully submitted!");
+  } catch (err) {
+    toast.error(JSON.stringify(err));
+  }
 }
 
 function recursiveExpandedHtmlFor(value) {
@@ -82,6 +89,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+
+      <ToastContainer theme={darkMode ? "dark" : "light"}/>
+
       <div className="border-t border-white mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-opacity-20 py-5 lg:block">
         <div className="grid grid-cols-12 items-center gap-8">
           <div className="col-span-5 md:col-span-7">
