@@ -3,8 +3,10 @@
 import Image from 'next/image'
 import CodeMirror from '@uiw/react-codemirror';
 
+import { validate as btc_validate } from 'bitcoin-address-validation';
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import { getAddress } from 'sats-connect';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
@@ -20,6 +22,9 @@ const DEFAULT_FEES_API = 'https://mempool.space/api/v1/fees/recommended';
 const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
 const DEFAULT_FILE_NAME = 'recursive_inscription.html';
 const DEFAULT_REFERRAL_CODE = 'abcdef'
+
+const DEFAULT_BTC_NETWORK = 'Mainnet';
+const DEFAULT_PAYMENT_TYPE = 'invoice';
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">
@@ -89,19 +94,61 @@ async function getFeesFor(inscriptionSpeed) {
   return fees[inscriptionSpeed];
 }
 
+async function getXVerseWalletAddress() {
+  var addresses = undefined;
+  const getAddressOptions = {
+    payload: {
+      purposes: ['ordinals'],
+      message: 'Recursive Ordinals Builder will use this to receive your inscriptions',
+      network: {
+        type: DEFAULT_BTC_NETWORK
+      },
+    },
+    onFinish: (response) => {
+      addresses = response.addresses;
+    },
+    onCancel: () => {
+      throw 'User declined to provide wallet access';
+    }
+  }
+
+  await getAddress(getAddressOptions);
+  if (!addresses) {
+    throw 'Could not retrieve Ordinals wallet address';
+  }
+  console.log(addresses);
+  return addresses[0].address;
+}
+
+async function getUnisatWalletAddress() {
+  if (typeof window.unisat === 'undefined') {
+    throw 'UniSat Wallet is not installed';
+  }
+  try {
+    const accounts = await window.unisat.requestAccounts();
+    if (accounts.length !== 1) {
+      throw `Invalid number of accounts detected (${accounts.length})`;
+    }
+    return accounts[0];
+  } catch (err) {
+    throw 'User did not grant access to Unisat';
+  }
+}
+
 async function placeOrderFor(ordinalsHtml, markupType, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
   try {
     const fee = await getFeesFor(inscriptionSpeed);
     console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
 
-    // TODO: Plug in xverse/unisat here
-    // TODO: Validate the wallet address using btcvalidate func
+    if (!btc_validate(walletAddr, DEFAULT_BTC_NETWORK.toLowerCase())) {
+      throw `Invalid BTC address provided: ${walletAddr}`;
+    }
 
     const ordinalsOrder = await getOrderInfoFor(fee, ordinalsHtml, markupType, rareSats, walletAddr);
     console.log(JSON.stringify(ordinalsOrder));
   } catch (err) {
     console.log(err);
-    toast.error(JSON.stringify(err));
+    toast.error(err);
   }
 }
 
@@ -116,7 +163,7 @@ export default function Home() {
 
   const [rareSats, setRareSats] = useState('random');
   const [inscriptionSpeed, setInscriptionSpeed] = useState('hourFee');
-  const [paymentMethod, setPaymentMethod] = useState('invoice');
+  const [paymentMethod, setPaymentMethod] = useState(DEFAULT_PAYMENT_TYPE);
   const [walletAddr, setWalletAddr] = useState('');
   const [ordinalsHtml, setOrdinalsHtml] = useState(DEFAULT_RECURSIVE_CODE);
 
@@ -204,10 +251,15 @@ export default function Home() {
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
                     <span className="grid grid-cols-3 rounded-md shadow-sm">
-                      <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
-                      <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                      <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod}
+                                     onClickFunc={() => getXVerseWalletAddress().then(setWalletAddr)} />
+                      <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod}
+                                     onClickFunc={() => getUnisatWalletAddress().then(setWalletAddr)}/>
                       <GroupedButton value="invoice" img={undefined} label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
                     </span>
+                    <div className={`${paymentMethod === 'invoice' ? 'hidden' : ''} mt-4 truncate text-ellipsis`}>
+                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue">{walletAddr}</span>
+                    </div>
                     <div className={`${paymentMethod === 'invoice' ? '' : 'hidden'} mt-4`}>
                       <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." setValue={setWalletAddr} />
                     </div>

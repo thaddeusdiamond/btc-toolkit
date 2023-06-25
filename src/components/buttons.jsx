@@ -17,7 +17,10 @@ export function GroupedButton(props) {
   const marginLeft = (props.type === 'left') ? '' : '-ml-px';
   return (
     <button type="button"
-            onClick={() => props.setValue(props.value)}
+            onClick={() => {
+              props.setValue(props.value);
+              props.onClickFunc && props.onClickFunc();
+            }}
             className={`${currentBg} ${borderRounding} ${marginLeft} flex items-center justify-center gap-2 px-3 py-3 text-sm text-center font-semibold ring-1 ring-inset ring-gray-300 focus:z-10`} >
       {(props.img !== undefined) ? <Image className="h-4 w-4" width={20} height={20} src={props.img} alt={props.label} /> : undefined}
       {props.label}
