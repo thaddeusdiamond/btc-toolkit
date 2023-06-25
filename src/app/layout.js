@@ -18,7 +18,7 @@ function Header() {
             </a>
           </div>
           <div className="flex-shrink-0">
-            <h1 className="text-2xl text-white">Recursive Ordinals Builder</h1>
+            <h1 className="text-2xl text-white font-custom-titles">Recursive Ordinals Builder</h1>
           </div>
           <div className="flex-shrink-0">
           </div>

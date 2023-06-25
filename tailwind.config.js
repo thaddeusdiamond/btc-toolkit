@@ -21,6 +21,9 @@ module.exports = {
       'tangz-blue-lighter': '#6284E8',
       'tangz-blue-darker': '#002070'
     },
+    fontFamily: {
+      'custom-titles': ['Rock Salt']
+    },
     extend: {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
