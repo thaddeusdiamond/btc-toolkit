@@ -125,11 +125,11 @@ export default function Home() {
 
   useEffect(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setDarkMode(true);
+      setDarkMode(true);
     }
     window.matchMedia('(prefers-color-scheme: dark)')
           .addEventListener('change', event => setDarkMode(event.matches));
-  });
+  }, []);
 
   return (
     <div className="min-h-screen">

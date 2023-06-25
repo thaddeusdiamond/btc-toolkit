@@ -2,6 +2,8 @@ import './globals.css'
 
 import 'react-toastify/dist/ReactToastify.css';
 
+import Image from 'next/image';
+
 import { Inter } from 'next/font/google';
 
 import { InformationalBox } from "../components/modals.jsx";
@@ -18,7 +20,7 @@ function Header() {
           <div className="left-0 flex-shrink-0 lg:static">
             <a href="https://wildtangz.com">
               <span className="sr-only">Wild Tangz</span>
-              <img className="h-8 w-auto rounded-lg" src="/logo.jpg" alt="Wild Tangz" />
+              <Image className="h-8 w-auto rounded-lg" src="/logo.jpg" alt="Wild Tangz" width={32} height={32} />
             </a>
           </div>
           <div className="flex-shrink-0">
