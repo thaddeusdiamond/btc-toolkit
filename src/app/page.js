@@ -7,6 +7,9 @@ import { useState, useEffect } from 'react';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
+import { GroupedButton, SimpleButton } from '../components/buttons.jsx';
+import { Toggle } from '../components/toggle.jsx';
+
 const RECURSIVE_CONTENT_REGEXP = /\/content\/[a-z0-9]+/g;
 const RECURSIVE_CONTENT_HOST = 'https://ord.io'
 
@@ -24,19 +27,22 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
   </body>
 </html>
 `;
+const MARKUP_MAPPINGS = {
+  html: html(),
+  svg: xml()
+};
 
 function recursiveExpandedHtmlFor(value) {
   return value.replaceAll(RECURSIVE_CONTENT_REGEXP, `${RECURSIVE_CONTENT_HOST}$&`);
 }
 
-function onCodeMirrorChange(value, viewUpdate, htmlUpdateFunc) {
-  htmlUpdateFunc(recursiveExpandedHtmlFor(value));
-}
-
 export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [isHtml, setIsHtml] = useState(true);
+  const [markupType, setMarkupType] = useState('html');
+  const [rareSats, setRareSats] = useState('random');
+  const [inscriptionSpeed, setInscriptionSpeed] = useState('60 mins');
+  const [paymentMethod, setPaymentMethod] = useState('invoice');
   const [ordinalsHtml, setOrdinalsHtml] = useState(DEFAULT_RECURSIVE_CODE);
   const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(DEFAULT_RECURSIVE_CODE));
   const [darkMode, setDarkMode] = useState(false);
@@ -49,30 +55,21 @@ export default function Home() {
           .addEventListener('change', event => setDarkMode(event.matches));
   });
 
+  console.log(ordinalsHtml);
+
   return (
     <div className="min-h-screen">
       <div className="border-t border-white mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-opacity-20 py-5 lg:block">
         <div className="grid grid-cols-12 items-center gap-8">
           <div className="col-span-5 md:col-span-7">
             <span className="isolate inline-flex rounded-md shadow-sm">
-              <button type="button" onClick={() => setIsHtml(!isHtml)} className={`${isHtml ? 'bg-tangz-blue text-white dark:bg-tangz-blue-darker dark:text-white' : 'bg-white text-gray-900 hover:bg-gray-50'} relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10`}>HTML</button>
-              <button type="button" onClick={() => setIsHtml(!isHtml)} className={`${isHtml ? 'bg-white text-gray-900 hover:bg-gray-50' : 'bg-tangz-blue text-white dark:bg-tangz-blue-darker dark:text-white'} relative -ml-px inline-flex items-center rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10`}>SVG</button>
+              <GroupedButton value="html" label="HTML" type="left" currentValue={markupType} setValue={setMarkupType} />
+              <GroupedButton value="svg" label="SVG" type="right" currentValue={markupType} setValue={setMarkupType} />
             </span>
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
-            <div className="flex items-center">
-              <button type="button" className={`${autoRefresh ? 'bg-tangz-blue dark:bg-tangz-blue-darker' : 'bg-gray-200'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-tangz-blue focus:ring-offset-2`} role="switch" aria-checked={autoRefresh} aria-labelledby="auto-refresh-label"
-                      onClick={() => setAutoRefresh(!autoRefresh)} checked={autoRefresh}>
-                <span aria-hidden="true" className={`${autoRefresh ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}></span>
-              </button>
-              <span className="ml-3 text-sm" id="auto-refresh-label">
-                <span className="font-medium text-tangz-blue dark:text-white">Auto-Refresh</span>
-              </span>
-            </div>
-            <button type="button" className={`${autoRefresh ? 'bg-gray-200 text-gray-400' : 'bg-tangz-blue text-white dark:bg-tangz-blue-darker'} cursor-pointer rounded px-4 py-2 text-sm font-semibold shadow-sm hover:bg-tangs-blue-darker focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tangz-blue`} disabled={autoRefresh}
-                    onClick={() => onCodeMirrorChange(ordinalsHtml, undefined, setOrdinalsPreviewFrame)}>
-              Refresh
-            </button>
+            <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
+            <SimpleButton label="Refresh" active={autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(ordinalsHtml))} />
           </div>
         </div>
       </div>
@@ -91,11 +88,12 @@ export default function Home() {
                         height="600px"
                         theme={darkMode ? 'dark' : 'light'}
                         onChange={(value, viewUpdate) => {
+                          setOrdinalsHtml(value);
                           if (autoRefresh) {
-                            onCodeMirrorChange(value, viewUpdate, setOrdinalsPreviewFrame)
+                            setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
                           }
                         }}
-                        extensions={[isHtml ? html() : xml()]}
+                        extensions={[MARKUP_MAPPINGS[markupType]]}
                       />
                   </div>
                 </div>
@@ -107,32 +105,32 @@ export default function Home() {
                 <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
                 <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
                   <div className="p-6">
-                    <frame src="javascript:'';" className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
+                    <frame className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
                     <div className="mt-4">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
                       <span className="isolate inline-flex rounded-md shadow-sm">
-                        <button type="button" className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">2009</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">2010</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">2011</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">Block 78</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">Random</button>
+                        <GroupedButton value="2009" label="2009" type="left" currentValue={rareSats} setValue={setRareSats} />
+                        <GroupedButton value="2010" label="2010" type="center" currentValue={rareSats} setValue={setRareSats} />
+                        <GroupedButton value="2011" label="2011" type="center" currentValue={rareSats} setValue={setRareSats} />
+                        <GroupedButton value="block78" label="Block 78" type="center" currentValue={rareSats} setValue={setRareSats} />
+                        <GroupedButton value="random" label="Random" type="right" currentValue={rareSats} setValue={setRareSats} />
                       </span>
                     </div>
                     <div className="mt-4">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
                       <span className="isolate inline-flex rounded-md shadow-sm">
-                        <button type="button" className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">Whenever</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">~1 Hour</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">~30 Minutes</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">~10 Minutes</button>
+                        <GroupedButton value="whenever" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="60 mins" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="30 mins" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                        <GroupedButton value="10 mins" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
                       </span>
                     </div>
                     <div className="mt-4">
                       <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
                       <span className="isolate inline-flex rounded-md shadow-sm">
-                        <button type="button" className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">XVerse</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">Unisat</button>
-                        <button type="button" className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:bg-tangz-blue-darker dark:text-white dark:hover:text-tangz-blue-darker">Invoice</button>
+                        <GroupedButton value="xverse" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                        <GroupedButton value="unisat" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                        <GroupedButton value="invoice" label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
                       </span>
                     </div>
                     <div className="mt-4 flex justify-center">
