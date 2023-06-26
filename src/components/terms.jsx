@@ -19,9 +19,9 @@ function updateAcknowledgement(id, setAcknowledgement) {
 
 function savedAcknowledgementValue(id) {
   if (typeof window !== "undefined") {
-    return window.localStorage?.getItem(id)
+    return window.localStorage?.getItem(id);
   }
-  return 0;
+  return new Date().getTime();
 }
 
 export function TermsAndConditionsModal(props) {
