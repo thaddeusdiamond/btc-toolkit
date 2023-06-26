@@ -94,7 +94,7 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 lg:col-span-7">
             <section aria-labelledby="section-1-title">
               <h2 className="sr-only" id="section-1-title">Recursive Inscription Code</h2>
-              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
+              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
                   <CodeMirror
                       value={orderData.get('ordinalsHtml')}
@@ -116,11 +116,11 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 lg:col-span-5">
             <section aria-labelledby="section-2-title">
               <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
-              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
+              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
                   <frame className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
                   <div className="mt-4 w-full">
-                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">
                       <GroupedButton groupKey="rareSats" value="2009" label="2009" type="left" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
                       <GroupedButton groupKey="rareSats" value="2010" label="2010" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
@@ -130,7 +130,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="mt-4 w-full">
-                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Inscription Speed (Gas)</h4>
                     <span className="grid grid-cols-4 rounded-md shadow-sm">
                       <GroupedButton groupKey="inscriptionSpeed" value="economyFee" label="Whenever" type="left" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
                       <GroupedButton groupKey="inscriptionSpeed" value="hourFee" label="~1 Hour" type="center" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
@@ -139,7 +139,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="mt-4 w-full">
-                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
+                    <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Wallet</h4>
                     <span className="grid grid-cols-3 rounded-md shadow-sm">
                       <GroupedButton groupKey="paymentMethod" value="xverse" img={defaultXVerseLogo()} label="XVerse" type="left" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => getXVerseWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))} />
@@ -148,8 +148,8 @@ export default function Home() {
                       <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>
-                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} mt-4 truncate text-ellipsis`}>
-                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue">{orderData.get("walletAddr")}</span>
+                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} dark:text-gray-300 mt-4 truncate text-ellipsis`}>
+                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue dark:text-tangz-blue-darker">{orderData.get("walletAddr")}</span>
                     </div>
                     <div className={`${orderData.get("paymentMethod") === 'invoice' ? '' : 'hidden'} mt-4`}>
                       <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." value={orderData.get("walletAddr")} setValue={value => updateOrder("walletAddr", value)} />

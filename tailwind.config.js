@@ -21,7 +21,8 @@ module.exports = {
       yellow: colors.yellow,
       'tangz-blue': '#3f69c9',
       'tangz-blue-lighter': '#6284E8',
-      'tangz-blue-darker': '#002070'
+      'tangz-blue-darker': '#002070',
+      'tangz-blue-darkest': '#001035'
     },
     fontFamily: {
       'custom-titles': ['Rock Salt']
