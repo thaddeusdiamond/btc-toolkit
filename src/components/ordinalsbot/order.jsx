@@ -1,0 +1,221 @@
+'use client';
+
+import { validate as btc_validate } from 'bitcoin-address-validation';
+import { useState, useEffect } from 'react';
+
+import { getFeesFor } from '../../utils/mempool.js';
+import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
+
+const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
+const DEFAULT_FILE_NAME = 'recursive_inscription.html';
+const DEFAULT_REFERRAL_CODE = 'abcdef'
+
+const SATOSHI_TO_BTC = 100000000.0;
+
+async function getOrderInfoFor(fee, walletAddr, orderData) {
+  const plainHtml = orderData.get('ordinalsHtml');
+  const b64encodedData = `data:${orderData.get('markupType')};base64,${btoa(plainHtml)}`;
+  const orderSubmissionData = {
+    files: [{
+      name: DEFAULT_FILE_NAME,
+      size: plainHtml.length,
+      dataURL: b64encodedData
+    }],
+    receiveAddress: walletAddr,
+    fee: fee,
+    lowPostage: false,
+    rareSats: orderData.get('rareSats'),
+    referral: DEFAULT_REFERRAL_CODE,
+    additionalFee: 1000
+  }
+  console.log(JSON.stringify(orderSubmissionData));
+  const orderSubmissionResp = await fetch(DEFAULT_ORDER_API, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderSubmissionData)
+  })
+  if (orderSubmissionResp.status !== 200) {
+    throw `Could not submit order (${orderSubmissionResp.status}): ${orderSubmissionResp.statusText}`;
+  }
+
+  const orderSubmission = await orderSubmissionResp.json();
+  if (orderSubmission.status === 'error') {
+    throw `Could not submit order: ${orderSubmission.error}`;
+  }
+
+  return orderSubmission;
+}
+
+async function placeOrderFor(orderData) {
+  console.log(orderData);
+  const walletAddr = orderData.get('walletAddr');
+  if (!btc_validate(walletAddr, 'mainnet')) {
+    throw `Invalid BTC address provided: ${walletAddr}`;
+  }
+
+  const inscriptionSpeed = orderData.get('inscriptionSpeed');
+  const fee = await getFeesFor(inscriptionSpeed);
+
+  const ordinalsOrder = await getOrderInfoFor(fee, walletAddr, orderData);
+  console.log(JSON.stringify(ordinalsOrder));
+
+  if (ordinalsOrder.status !== 'ok') {
+    throw `An error occurred submitting your order: ${JSON.stringify(ordinalsOrder)}`
+  }
+  return ordinalsOrder.charge;
+}
+
+function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDetails }) {
+  return (
+    <div className={`${visible ? '' : 'hidden'} relative z-10`} role="dialog" aria-modal="true">
+      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+      <div className="fixed inset-0 z-10 overflow-y-auto">
+        <div className="flex min-h-screen items-end justify-start md:justify-center p-0 md:p-4 text-start sm:items-center">
+          <div className="lg:col-start-3 lg:row-end-1">
+            <h2 className="sr-only">Summary</h2>
+            <div className="w-screen lg:max-w-3xl rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
+              <div class={`${receiptDetails.get('status') === 'error' ? '' : 'hidden'} rounded-md bg-red-50 p-4`}>
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">There were errors with your inscription</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                      <ul role="list" class="list-disc space-y-1 pl-5">
+                        <li>{receiptDetails.get('err')}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <dl className="flex flex-wrap">
+                <div className="flex-auto pl-6 pt-6">
+                  <dt className="text-sm font-semibold leading-6 text-gray-900">Amount</dt>
+                  <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">
+                    {receiptDetails.has('amount') ? (receiptDetails.get('amount') / SATOSHI_TO_BTC) : '0.XXX'} {receiptDetails.get('currency')} (${receiptDetails.get('fiat_value')?.toFixed(2)})
+                  </dd>
+                </div>
+                <div className="flex-none self-end px-6 pt-4">
+                  <dt className="sr-only">Status</dt>
+                  <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                    {receiptDetails.has('status') ? receiptDetails.get('status') : 'loading...'}
+                  </dd>
+                </div>
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6 pt-6 border-t border-gray-900/5 ">
+                  <dt className="flex-none">
+                    <span className="sr-only">Address</span>
+                    <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z" clip-rule="evenodd" />
+                    </svg>
+                  </dt>
+                  <dd className="text-sm font-medium leading-6 text-gray-900">
+                    Send to {receiptDetails.has('address') ? receiptDetails.get('address') : '(order address will populate here)'}
+                  </dd>
+                </div>
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
+                  <dt className="flex-none">
+                    <span className="sr-only">Due Date</span>
+                    <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M5.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75V12zM6 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H6zM7.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H8a.75.75 0 01-.75-.75V12zM8 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H8zM9.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V10zM10 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H10zM9.25 14a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V14zM12 9.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V10a.75.75 0 00-.75-.75H12zM11.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H12a.75.75 0 01-.75-.75V12zM12 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H12zM13.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H14a.75.75 0 01-.75-.75V10zM14 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H14z" />
+                      <path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
+                    </svg>
+                  </dt>
+                  <dd className="text-sm leading-6 text-gray-900">
+                    Complete by {receiptDetails.has('created_at') ? new Date((receiptDetails.get('created_at') + receiptDetails.get('ttl')) *  1000).toLocaleString() : '(expiration will populate here)'}
+                  </dd>
+                </div>
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
+                  <dt className="flex-none">
+                    <span className="sr-only">Order ID</span>
+                    <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clip-rule="evenodd" />
+                    </svg>
+                  </dt>
+                  <dd className="text-sm leading-6 text-gray-400">
+                    Order ID: {receiptDetails.has('id') ? receiptDetails.get('id') : '(order ID will populate here)'}
+                  </dd>
+                </div>
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
+                  <dt className="flex-none">
+                    <span className="sr-only">Receive Address</span>
+                    <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clip-rule="evenodd" />
+                    </svg>
+                  </dt>
+                  <dd className="text-sm leading-6 text-gray-400">
+                    You will receive the inscription at: {orderData.get('walletAddr')}
+                  </dd>
+                </div>
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
+                  <dt className="flex-none">
+                    <span className="sr-only">Rare Sats</span>
+                    <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clip-rule="evenodd" />
+                    </svg>
+                  </dt>
+                  <dd className="text-sm leading-6 text-gray-400">
+                    Rare/Common Sat Selection: {orderData.get('rareSats')}
+                  </dd>
+                </div>
+              </dl>
+              <div className="mt-6 flex justify-between border-t border-gray-900/5 px-6 py-6">
+                <a href={receiptDetails.has('hosted_checkout_url') ? receiptDetails.get('hosted_checkout_url') : '#'} target="_blank">
+                  <SimpleButton label="Checkout on OpenNode" active={closable} onClick={null} />
+                </a>
+                <CancelButton label="Close" active={closable} onClick={closeFunc} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, orderCallback }) {
+
+  const [inscribeActive, setInscribeActive] = useState(true);
+
+  return (
+    <SimpleButton label="Inscribe" active={inscribeActive} onClick={async () => {
+        setTransactionSent(false);
+        orderCallback({});
+        setReceiptVisible(true);
+        setInscribeActive(false);
+        try {
+          const orderInformation = await placeOrderFor(orderData);
+          orderCallback(orderInformation);
+        } catch (err) {
+          console.log(err);
+          orderCallback({status: 'error', err: err});
+        } finally {
+          setInscribeActive(true);
+          setTransactionSent(true);
+        }
+      }} />
+  )
+}
+
+export function OrdinalsBotOrder({ orderData }) {
+
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [transactionSent, setTransactionSent] = useState(false);
+  const [receiptDetails, setReceiptDetails] = useState(new Map());
+
+  const setReceipt = (receiptDetails) => {
+    setReceiptDetails(new Map(Object.entries(receiptDetails)));
+  }
+
+  return (
+    <div>
+      <OrdinalsBotReceipt orderData={orderData} visible={receiptVisible} closable={transactionSent} closeFunc={() => setReceiptVisible(false)} receiptDetails={receiptDetails} />
+      <OrdinalsBotSubmit orderData={orderData} setReceiptVisible={setReceiptVisible} setTransactionSent={setTransactionSent} orderCallback={setReceipt} />
+    </div>
+  );
+}

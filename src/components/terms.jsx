@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-import { SimpleButton } from '../components/buttons.jsx';
+import { SimpleButton } from '../components/widgets/buttons.jsx';
 
 function isValid(acknowledgement, expiration) {
   const currentTime = new Date().getTime();
@@ -10,8 +10,8 @@ function isValid(acknowledgement, expiration) {
 }
 
 function updateAcknowledgement(id, setAcknowledgement) {
+  const currentTime = new Date().getTime();
   if (typeof window !== "undefined") {
-    const currentTime = new Date().getTime();
     window.localStorage.setItem(id, currentTime);
   }
   setAcknowledgement(currentTime);
@@ -24,16 +24,16 @@ function savedAcknowledgementValue(id) {
   return 0;
 }
 
-export function InformationalBox(props) {
+export function TermsAndConditionsModal(props) {
 
   const [acknowledgement, setAcknowledgement] = useState(savedAcknowledgementValue(props.id));
 
   return (
     <div className={`${isValid(acknowledgement, props.expiration) ? 'hidden' : ''} relative z-10`} aria-labelledby={props.id} role="dialog" aria-modal="true">
-      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+      <div className="fixed w-screen inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
-      <div className="fixed inset-0 z-10 overflow-y-auto">
-        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div className="fixed w-screen inset-0 z-10 overflow-y-auto">
+        <div className="flex min-h-screen items-end justify-start md:justify-center p-0 md:p-4 text-center sm:items-center">
           <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
             <div>
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">

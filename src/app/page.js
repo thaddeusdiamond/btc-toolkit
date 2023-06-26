@@ -3,28 +3,20 @@
 import Image from 'next/image'
 import CodeMirror from '@uiw/react-codemirror';
 
-import { validate as btc_validate } from 'bitcoin-address-validation';
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import { getAddress } from 'sats-connect';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
-import { GroupedButton, SimpleButton } from '../components/buttons.jsx';
-import { TextInput } from '../components/inputs.jsx';
-import { Toggle } from '../components/toggle.jsx';
+import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
+import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
+import { TextInput } from '../components/widgets/input.jsx';
+import { Toggle } from '../components/widgets/toggle.jsx';
+import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
+import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
 
 const RECURSIVE_CONTENT_REGEXP = /\/content\/[a-z0-9]+/g;
 const RECURSIVE_CONTENT_HOST = 'https://ord.io'
-
-const DEFAULT_FEES_API = 'https://mempool.space/api/v1/fees/recommended';
-
-const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
-const DEFAULT_FILE_NAME = 'recursive_inscription.html';
-const DEFAULT_REFERRAL_CODE = 'abcdef'
-
-const DEFAULT_BTC_NETWORK = 'Mainnet';
-const DEFAULT_PAYMENT_TYPE = 'invoice';
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">
@@ -40,117 +32,20 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
   </body>
 </html>
 `;
+
 const MARKUP_MAPPINGS = {
   'text/html': html(),
   'image/svg+xml': xml()
 };
 
-async function getOrderInfoFor(fee, ordinalsHtml, markupType, rareSats, walletAddr) {
-  console.log( btoa(ordinalsHtml));
-  const orderSubmissionData = {
-    files: [{
-      name: DEFAULT_FILE_NAME,
-      size: ordinalsHtml.length,
-      dataURL: `data:${markupType};base64,${btoa(ordinalsHtml)}`
-    }],
-    receiveAddress: walletAddr,
-    fee: fee,
-    lowPostage: false,
-    rareSats: rareSats,
-    referral: DEFAULT_REFERRAL_CODE,
-    additionalFee: 1000
-  }
-  console.log(JSON.stringify(orderSubmissionData));
-  const orderSubmissionResp = await fetch(DEFAULT_ORDER_API, {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderSubmissionData)
-  })
-  if (orderSubmissionResp.status !== 200) {
-    throw `Could not submit order (${orderSubmissionResp.status}): ${orderSubmissionResp.statusText}`;
-  }
-
-  const orderSubmission = await orderSubmissionResp.json();
-  if (orderSubmission.status === 'error') {
-    throw `Could not submit order: ${orderSubmission.error}`;
-  }
-
-  return orderSubmission.charge;
-}
-
-async function getFeesFor(inscriptionSpeed) {
-  const feesApi = await fetch(DEFAULT_FEES_API);
-  if (feesApi.status !== 200) {
-    throw 'Could not retrieve fees, please try again soon.';
-  }
-
-  const fees = await feesApi.json();
-  if (!(inscriptionSpeed in fees)) {
-    throw `Could not find matching fee for "${inscriptionSpeed}"`;
-  }
-
-  return fees[inscriptionSpeed];
-}
-
-async function getXVerseWalletAddress() {
-  var addresses = undefined;
-  const getAddressOptions = {
-    payload: {
-      purposes: ['ordinals'],
-      message: 'Recursive Ordinals Builder will use this to receive your inscriptions',
-      network: {
-        type: DEFAULT_BTC_NETWORK
-      },
-    },
-    onFinish: (response) => {
-      addresses = response.addresses;
-    },
-    onCancel: () => {
-      throw 'User declined to provide wallet access';
-    }
-  }
-
-  await getAddress(getAddressOptions);
-  if (!addresses) {
-    throw 'Could not retrieve Ordinals wallet address';
-  }
-  console.log(addresses);
-  return addresses[0].address;
-}
-
-async function getUnisatWalletAddress() {
-  if (typeof window.unisat === 'undefined') {
-    throw 'UniSat Wallet is not installed';
-  }
-  try {
-    const accounts = await window.unisat.requestAccounts();
-    if (accounts.length !== 1) {
-      throw `Invalid number of accounts detected (${accounts.length})`;
-    }
-    return accounts[0];
-  } catch (err) {
-    throw 'User did not grant access to Unisat';
-  }
-}
-
-async function placeOrderFor(ordinalsHtml, markupType, rareSats, inscriptionSpeed, paymentMethod, walletAddr) {
-  try {
-    const fee = await getFeesFor(inscriptionSpeed);
-    console.log(fee, ordinalsHtml, rareSats, inscriptionSpeed, paymentMethod, walletAddr);
-
-    if (!btc_validate(walletAddr, DEFAULT_BTC_NETWORK.toLowerCase())) {
-      throw `Invalid BTC address provided: ${walletAddr}`;
-    }
-
-    const ordinalsOrder = await getOrderInfoFor(fee, ordinalsHtml, markupType, rareSats, walletAddr);
-    console.log(JSON.stringify(ordinalsOrder));
-  } catch (err) {
-    console.log(err);
-    toast.error(err);
-  }
-}
+const DEFAULT_ORDER_DATA = new Map([
+  ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
+  ['mimeType', 'text/html'],
+  ['rareSats', 'random'],
+  ['inscriptionSpeed', 'hourFee'],
+  ['paymentMethod', 'invoice'],
+  ['walletAddr', '']
+])
 
 function recursiveExpandedHtmlFor(value) {
   return value.replaceAll(RECURSIVE_CONTENT_REGEXP, `${RECURSIVE_CONTENT_HOST}$&`);
@@ -159,15 +54,8 @@ function recursiveExpandedHtmlFor(value) {
 export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [markupType, setMarkupType] = useState('text/html');
-
-  const [rareSats, setRareSats] = useState('random');
-  const [inscriptionSpeed, setInscriptionSpeed] = useState('hourFee');
-  const [paymentMethod, setPaymentMethod] = useState(DEFAULT_PAYMENT_TYPE);
-  const [walletAddr, setWalletAddr] = useState('');
-  const [ordinalsHtml, setOrdinalsHtml] = useState(DEFAULT_RECURSIVE_CODE);
-
-  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(ordinalsHtml));
+  const [orderData, setOrderData] = useState(DEFAULT_ORDER_DATA);
+  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')));
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -178,6 +66,8 @@ export default function Home() {
           .addEventListener('change', event => setDarkMode(event.matches));
   }, []);
 
+  const updateOrder = (key, value) => setOrderData(new Map(orderData.set(key, value)));
+
   return (
     <div className="min-h-screen">
 
@@ -187,13 +77,13 @@ export default function Home() {
         <div className="grid grid-cols-12 items-center gap-8">
           <div className="col-span-5 md:col-span-7">
             <span className="isolate inline-flex rounded-md shadow-sm">
-              <GroupedButton value="text/html" label="HTML" type="left" currentValue={markupType} setValue={setMarkupType} />
-              <GroupedButton value="image/svg+xml" label="SVG" type="right" currentValue={markupType} setValue={setMarkupType} />
+              <GroupedButton groupKey="mimeType" value="text/html" label="HTML" type="left" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
+              <GroupedButton groupKey="mimeType" value="image/svg+xml" label="SVG" type="right" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
             </span>
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
             <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
-            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(ordinalsHtml))} />
+            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')))} />
           </div>
         </div>
       </div>
@@ -207,16 +97,16 @@ export default function Home() {
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
                 <div className="p-6">
                   <CodeMirror
-                      value={ordinalsHtml}
+                      value={orderData.get('ordinalsHtml')}
                       height="600px"
                       theme={darkMode ? 'dark' : 'light'}
                       onChange={(value, viewUpdate) => {
-                        setOrdinalsHtml(value);
+                        updateOrder('ordinalsHtml', value);
                         if (autoRefresh) {
                           setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
                         }
                       }}
-                      extensions={[MARKUP_MAPPINGS[markupType]]}
+                      extensions={[MARKUP_MAPPINGS[orderData.get('mimeType')]]}
                     />
                 </div>
               </div>
@@ -232,40 +122,41 @@ export default function Home() {
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">
-                      <GroupedButton value="2009" label="2009" type="left" currentValue={rareSats} setValue={setRareSats} />
-                      <GroupedButton value="2010" label="2010" type="center" currentValue={rareSats} setValue={setRareSats} />
-                      <GroupedButton value="2011" label="2011" type="center" currentValue={rareSats} setValue={setRareSats} />
-                      <GroupedButton value="block78" label="Block 78" type="center" currentValue={rareSats} setValue={setRareSats} />
-                      <GroupedButton value="random" label="Random" type="right" currentValue={rareSats} setValue={setRareSats} />
+                      <GroupedButton groupKey="rareSats" value="2009" label="2009" type="left" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      <GroupedButton groupKey="rareSats" value="2010" label="2010" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      <GroupedButton groupKey="rareSats" value="2011" label="2011" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      <GroupedButton groupKey="rareSats" value="block78" label="Block 78" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      <GroupedButton groupKey="rareSats" value="random" label="Random" type="right" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
                     </span>
                   </div>
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Inscription Speed (Gas)</h4>
                     <span className="grid grid-cols-4 rounded-md shadow-sm">
-                      <GroupedButton value="economyFee" label="Whenever" type="left" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                      <GroupedButton value="hourFee" label="~1 Hour" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                      <GroupedButton value="halfHourFee" label="~30 Mins" type="center" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
-                      <GroupedButton value="fastestFee" label="~10 Mins" type="right" currentValue={inscriptionSpeed} setValue={setInscriptionSpeed} />
+                      <GroupedButton groupKey="inscriptionSpeed" value="economyFee" label="Whenever" type="left" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
+                      <GroupedButton groupKey="inscriptionSpeed" value="hourFee" label="~1 Hour" type="center" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
+                      <GroupedButton groupKey="inscriptionSpeed" value="halfHourFee" label="~30 Mins" type="center" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
+                      <GroupedButton groupKey="inscriptionSpeed" value="fastestFee" label="~10 Mins" type="right" currentValue={orderData.get("inscriptionSpeed")} setValue={updateOrder} />
                     </span>
                   </div>
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Wallet</h4>
                     <span className="grid grid-cols-3 rounded-md shadow-sm">
-                      <GroupedButton value="xverse" img="https://assets.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png" label="XVerse" type="left" currentValue={paymentMethod} setValue={setPaymentMethod}
-                                     onClickFunc={() => getXVerseWalletAddress().then(setWalletAddr)} />
-                      <GroupedButton value="unisat" img="https://unisat.io/img/favicon.ico" label="Unisat" type="center" currentValue={paymentMethod} setValue={setPaymentMethod}
-                                     onClickFunc={() => getUnisatWalletAddress().then(setWalletAddr)}/>
-                      <GroupedButton value="invoice" img={undefined} label="Invoice" type="right" currentValue={paymentMethod} setValue={setPaymentMethod} />
+                      <GroupedButton groupKey="paymentMethod" value="xverse" img={defaultXVerseLogo()} label="XVerse" type="left" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => getXVerseWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))} />
+                      <GroupedButton groupKey="paymentMethod" value="unisat" img={defaultUnisatLogo()} label="Unisat" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => getUnisatWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
+                      <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>
-                    <div className={`${paymentMethod === 'invoice' ? 'hidden' : ''} mt-4 truncate text-ellipsis`}>
-                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue">{walletAddr}</span>
+                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} mt-4 truncate text-ellipsis`}>
+                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue">{orderData.get("walletAddr")}</span>
                     </div>
-                    <div className={`${paymentMethod === 'invoice' ? '' : 'hidden'} mt-4`}>
-                      <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." setValue={setWalletAddr} />
+                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? '' : 'hidden'} mt-4`}>
+                      <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." value={orderData.get("walletAddr")} setValue={value => updateOrder("walletAddr", value)} />
                     </div>
                   </div>
                   <div className="mt-4 flex justify-center">
-                    <SimpleButton label="Inscribe" active={true} onClick={(async) => placeOrderFor(ordinalsHtml, markupType, rareSats, inscriptionSpeed, paymentMethod, walletAddr)} />
+                    <OrdinalsBotOrder orderData={orderData} />
                   </div>
                 </div>
               </div>

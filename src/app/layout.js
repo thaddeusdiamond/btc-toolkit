@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 import { Inter } from 'next/font/google';
 
-import { InformationalBox } from "../components/modals.jsx";
+import { TermsAndConditionsModal } from "../components/terms.jsx";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,7 +24,7 @@ function Header() {
             </a>
           </div>
           <div className="flex-shrink-0">
-            <h1 className="text-2xl text-white font-custom-titles">Recursive Ordinals Builder</h1>
+            <h1 className="text-2xl text-white font-custom-titles w-72 md:w-full">Recursive Ordinals Builder</h1>
           </div>
           <div className="flex-shrink-0">
           </div>
@@ -53,9 +53,9 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <Header />
         <main className="pb-8">
-          <InformationalBox id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
+          <TermsAndConditionsModal id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
             <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
-          </InformationalBox>
+          </TermsAndConditionsModal>
           {children}
         </main>
         <Footer />
