@@ -12,11 +12,12 @@ import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
+import { b64encodedUrl } from '../utils/html.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
 
 const RECURSIVE_CONTENT_REGEXP = /\/content\/[a-z0-9]+/g;
-const RECURSIVE_CONTENT_HOST = 'https://ord.io'
+const RECURSIVE_CONTENT_HOST = 'https://ord-mirror.magiceden.dev'
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">
@@ -25,9 +26,9 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Build Your Own Recursive Ordinal</title>
   </head>
-  <body style="width:100%;margin:0px">
+  <body style="margin: 0px">
     <div>
-      <img src="/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0" />
+      <img style="width:100%;margin:0px" src="/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0" />
     </div>
   </body>
 </html>
@@ -118,7 +119,8 @@ export default function Home() {
               <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
-                  <frame className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
+                  <iframe className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
+                          src={b64encodedUrl(orderData.get('mimeType'), recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')))} />
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">

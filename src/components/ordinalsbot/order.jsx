@@ -4,6 +4,7 @@ import { validate as btc_validate } from 'bitcoin-address-validation';
 import { useState, useEffect } from 'react';
 
 import { getFeesFor } from '../../utils/mempool.js';
+import { b64encodedUrl } from '../../utils/html.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
 
 const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
@@ -14,12 +15,11 @@ const SATOSHI_TO_BTC = 100000000.0;
 
 async function getOrderInfoFor(fee, walletAddr, orderData) {
   const plainHtml = orderData.get('ordinalsHtml');
-  const b64encodedData = `data:${orderData.get('markupType')};base64,${btoa(plainHtml)}`;
   const orderSubmissionData = {
     files: [{
       name: DEFAULT_FILE_NAME,
       size: plainHtml.length,
-      dataURL: b64encodedData
+      dataURL: b64encodedUrl(orderData.get('mimeType'), plainHtml)
     }],
     receiveAddress: walletAddr,
     fee: fee,
