@@ -9,15 +9,24 @@ function isValid(acknowledgement, expiration) {
   return (acknowledgement != null) && ((currentTime - acknowledgement) < expiration);
 }
 
+function updateAcknowledgement(id, setAcknowledgement) {
+  if (typeof window !== "undefined") {
+    const currentTime = new Date().getTime();
+    window.localStorage.setItem(id, currentTime);
+  }
+  setAcknowledgement(currentTime);
+}
+
+function savedAcknowledgementValue(id) {
+  if (typeof window !== "undefined") {
+    return window.localStorage?.getItem(id)
+  }
+  return 0;
+}
+
 export function InformationalBox(props) {
 
-  const [acknowledgement, setAcknowledgement] = useState(localStorage.getItem(props.id));
-
-  const updateAcknowledgement = () => {
-    const currentTime = new Date().getTime();
-    localStorage.setItem(props.id, currentTime);
-    setAcknowledgement(currentTime);
-  }
+  const [acknowledgement, setAcknowledgement] = useState(savedAcknowledgementValue(props.id));
 
   return (
     <div className={`${isValid(acknowledgement, props.expiration) ? 'hidden' : ''} relative z-10`} aria-labelledby={props.id} role="dialog" aria-modal="true">
@@ -40,7 +49,7 @@ export function InformationalBox(props) {
               </div>
             </div>
             <div className="mt-5 sm:mt-6">
-              <SimpleButton label={props.confirmation} active={true} onClick={updateAcknowledgement} extraClasses="w-full" />
+              <SimpleButton label={props.confirmation} active={true} onClick={() => updateAcknowledgement(props.id, setAcknowledgement)} extraClasses="w-full" />
             </div>
           </div>
         </div>
