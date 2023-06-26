@@ -4,49 +4,9 @@ import { validate as btc_validate } from 'bitcoin-address-validation';
 import { useState, useEffect } from 'react';
 
 import { getFeesFor } from '../../utils/mempool.js';
-import { b64encodedUrl } from '../../utils/html.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
 
-const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
-const DEFAULT_FILE_NAME = 'recursive_inscription.html';
-const DEFAULT_REFERRAL_CODE = 'wildtangz'
-
 const SATOSHI_TO_BTC = 100000000.0;
-
-async function getOrderInfoFor(fee, walletAddr, orderData) {
-  const plainHtml = orderData.get('ordinalsHtml');
-  const orderSubmissionData = {
-    files: [{
-      name: DEFAULT_FILE_NAME,
-      size: plainHtml.length,
-      dataURL: b64encodedUrl(orderData.get('mimeType'), plainHtml)
-    }],
-    receiveAddress: walletAddr,
-    fee: fee,
-    lowPostage: false,
-    rareSats: orderData.get('rareSats'),
-    referral: DEFAULT_REFERRAL_CODE,
-    additionalFee: 1000
-  }
-  console.log(JSON.stringify(orderSubmissionData));
-  const orderSubmissionResp = await fetch(DEFAULT_ORDER_API, {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderSubmissionData)
-  })
-  if (orderSubmissionResp.status !== 200) {
-    throw `Could not submit order (${orderSubmissionResp.status}): ${orderSubmissionResp.statusText}`;
-  }
-
-  const orderSubmission = await orderSubmissionResp.json();
-  if (orderSubmission.status === 'error') {
-    throw `Could not submit order: ${orderSubmission.error}`;
-  }
-
-  return orderSubmission;
-}
 
 async function placeOrderFor(orderData) {
   console.log(orderData);
@@ -58,13 +18,28 @@ async function placeOrderFor(orderData) {
   const inscriptionSpeed = orderData.get('inscriptionSpeed');
   const fee = await getFeesFor(inscriptionSpeed);
 
-  const ordinalsOrder = await getOrderInfoFor(fee, walletAddr, orderData);
+  const orderSubmissionData = {
+    ordinalsHtml: orderData.get('ordinalsHtml'),
+    mimeType: orderData.get('mimeType'),
+    rareSats: orderData.get('rareSats'),
+    walletAddr: walletAddr,
+    fee: fee
+  }
+  const ordinalsOrder = await fetch('/api/order', {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderSubmissionData)
+  });
   console.log(JSON.stringify(ordinalsOrder));
 
-  if (ordinalsOrder.status !== 'ok') {
-    throw `An error occurred submitting your order: ${JSON.stringify(ordinalsOrder)}`
+  if (ordinalsOrder.status !== 200) {
+    throw `An error occurred submitting your order: ${await ordinalsOrder.text()}`
   }
-  return ordinalsOrder.charge;
+
+  const ordinalsOrderResult = await ordinalsOrder.json();
+  return ordinalsOrderResult.charge;
 }
 
 function normalizedErrorMessage(error) {
