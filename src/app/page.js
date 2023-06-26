@@ -199,7 +199,7 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-        <h1 className="sr-only">Page title</h1>
+        <h1 className="sr-only">Recursive Inscription Code</h1>
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
           <div className="grid grid-cols-1 gap-4 lg:col-span-7">
             <section aria-labelledby="section-1-title">
@@ -228,7 +228,7 @@ export default function Home() {
               <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-500">
                 <div className="p-6">
-                  <frame className="mt-4 aspect-square h-full w-full max-w-xl" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
+                  <frame className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" dangerouslySetInnerHTML={{__html: ordinalsPreviewFrame}} />
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-white">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">
