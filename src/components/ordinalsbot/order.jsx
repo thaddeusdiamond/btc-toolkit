@@ -67,6 +67,16 @@ async function placeOrderFor(orderData) {
   return ordinalsOrder.charge;
 }
 
+function normalizedErrorMessage(error) {
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (typeof error === 'object' && 'message' in error) {
+    return error.message;
+  }
+  return JSON.stringify(error);
+}
+
 function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDetails }) {
   return (
     <div className={`${visible ? '' : 'hidden'} relative z-10`} role="dialog" aria-modal="true">
@@ -88,7 +98,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                     <h3 className="text-sm font-medium text-red-800">There were errors with your inscription</h3>
                     <div className="mt-2 text-sm text-red-700">
                       <ul role="list" className="list-disc space-y-1 pl-5">
-                        <li>{receiptDetails.get('err')}</li>
+                        <li>{normalizedErrorMessage(receiptDetails.get('err'))}</li>
                       </ul>
                     </div>
                   </div>
@@ -167,10 +177,10 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                 </div>
               </dl>
               <div className="mt-6 flex justify-between border-t border-gray-900/5 px-6 py-6">
+                <CancelButton label="Close" active={closable} onClick={closeFunc} />
                 <a href={receiptDetails.has('hosted_checkout_url') ? receiptDetails.get('hosted_checkout_url') : '#'} target="_blank">
                   <SimpleButton label="Checkout on OpenNode" active={closable} onClick={null} />
                 </a>
-                <CancelButton label="Close" active={closable} onClick={closeFunc} />
               </div>
             </div>
           </div>
