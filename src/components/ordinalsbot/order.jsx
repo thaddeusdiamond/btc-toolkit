@@ -9,7 +9,7 @@ import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx
 
 const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
 const DEFAULT_FILE_NAME = 'recursive_inscription.html';
-const DEFAULT_REFERRAL_CODE = 'abcdef'
+const DEFAULT_REFERRAL_CODE = 'wildtangz'
 
 const SATOSHI_TO_BTC = 100000000.0;
 
