@@ -99,7 +99,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                       <path fillRule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z" clipRule="evenodd" />
                     </svg>
                   </dt>
-                  <dd className="text-sm font-medium leading-6">
+                  <dd className="text-sm font-medium leading-6 break-all">
                     Send to {receiptDetails.has('address') ? receiptDetails.get('address') : '(order address will populate here)'}
                   </dd>
                 </div>
@@ -111,7 +111,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                       <path fillRule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clipRule="evenodd" />
                     </svg>
                   </dt>
-                  <dd className="text-sm leading-6">
+                  <dd className="text-sm leading-6 break-all">
                     Complete by {receiptDetails.has('created_at') ? new Date((receiptDetails.get('created_at') + receiptDetails.get('ttl')) *  1000).toLocaleString() : '(expiration will populate here)'}
                   </dd>
                 </div>
@@ -122,7 +122,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z" clipRule="evenodd" />
                     </svg>
                   </dt>
-                  <dd className="text-sm leading-6 text-gray-400">
+                  <dd className="text-sm leading-6 text-gray-400 break-all">
                     Order ID: {receiptDetails.has('id') ? receiptDetails.get('id') : '(order ID will populate here)'}
                   </dd>
                 </div>
@@ -134,7 +134,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                       <path d="M5.273 4.5a1.25 1.25 0 00-1.205.918l-1.523 5.52c-.006.02-.01.041-.015.062H6a1 1 0 01.894.553l.448.894a1 1 0 00.894.553h3.438a1 1 0 00.86-.49l.606-1.02A1 1 0 0114 11h3.47a1.318 1.318 0 00-.015-.062l-1.523-5.52a1.25 1.25 0 00-1.205-.918h-.977a.75.75 0 010-1.5h.977a2.75 2.75 0 012.651 2.019l1.523 5.52c.066.239.099.485.099.732V15a2 2 0 01-2 2H3a2 2 0 01-2-2v-3.73c0-.246.033-.492.099-.73l1.523-5.521A2.75 2.75 0 015.273 3h.977a.75.75 0 010 1.5h-.977z" />
                     </svg>
                   </dt>
-                  <dd className="text-sm leading-6 text-gray-400">
+                  <dd className="text-sm leading-6 text-gray-400 break-all">
                     You will receive the inscription at: {orderData.get('walletAddr')}
                   </dd>
                 </div>
@@ -146,7 +146,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-6a.75.75 0 01.75.75v.316a3.78 3.78 0 011.653.713c.426.33.744.74.925 1.2a.75.75 0 01-1.395.55 1.35 1.35 0 00-.447-.563 2.187 2.187 0 00-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 11-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 111.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 01-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 011.653-.713V4.75A.75.75 0 0110 4z" clipRule="evenodd" />
                     </svg>
                   </dt>
-                  <dd className="text-sm leading-6 text-gray-400">
+                  <dd className="text-sm leading-6 text-gray-400 break-all">
                     Rare/Common Sat Selection: {orderData.get('rareSats')}
                   </dd>
                 </div>

@@ -16,7 +16,7 @@ import { b64encodedUrl } from '../utils/html.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
 
-const RECURSIVE_CONTENT_REGEXP = /\/content\/[a-z0-9]+/g;
+const RECURSIVE_CONTENT_REGEXP = /\/content\//g;
 const RECURSIVE_CONTENT_HOST = 'https://ord-mirror.magiceden.dev'
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
