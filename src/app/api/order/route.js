@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 
 import { b64encodedUrl } from '../../../utils/html.js';
 
+import prisma from '../../../prisma/prisma.mjs';
+
 const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
 const DEFAULT_FILE_NAME = 'recursive_inscription.html';
 const DEFAULT_REFERRAL_CODE = 'wildtangz'
@@ -41,6 +43,17 @@ export async function POST(req) {
     if (orderSubmission.status === 'error') {
       throw `Could not submit order: ${orderSubmission.error}`;
     }
+
+    const orderCreate = await prisma.order.create({
+      data: {
+        id: orderSubmission.charge.id,
+        receive_addr: orderSubmission.receiveAddress,
+        price: orderSubmission.charge.amount,
+        status: orderSubmission.charge.status,
+        service_fee: orderSubmission.serviceFee
+      }
+    })
+    console.log(`Created a new order (unpaid): ${JSON.stringify(orderCreate)}`);
 
     return NextResponse.json(orderSubmission, {status: 200, statusText: `Successfully placed order ${orderSubmission.charge.id}`});
   } catch (err) {

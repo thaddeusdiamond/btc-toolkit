@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "prisma generate && next dev",
+    "build": "prisma generate && prisma db push && next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@prisma/client": "^4.16.0",
+    "prisma": "^4.16.0"
   },
   "dependencies": {
     "autoprefixer": "10.4.14",
@@ -17,6 +24,7 @@
     "eslint-config-next": "13.4.7",
     "next": "13.4.7",
     "postcss": "8.4.24",
+    "prisma": "^4.16.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-toastify": "9.1.3",
