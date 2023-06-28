@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { b64encodedUrl } from '../../../utils/html.js';
+import { DEFAULT_ORDER_URL, DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 
 import prisma from '../../../prisma/prisma.mjs';
 
-const DEFAULT_ORDER_API = 'https://api2.ordinalsbot.com/order'
 const DEFAULT_FILE_NAME = 'recursive_inscription.html';
-const DEFAULT_REFERRAL_CODE = 'wildtangz'
 
 export async function POST(req) {
   try {

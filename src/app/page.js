@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
+import { DEFAULT_ORDER_URL, DEFAULT_REFERRAL_CODE } from '../components/ordinalsbot/config.js';
 import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
@@ -79,7 +80,10 @@ export default function Home() {
           <div className="col-span-5 md:col-span-7">
             <span className="isolate inline-flex rounded-md shadow-sm">
               <GroupedButton groupKey="mimeType" value="text/html" label="HTML" type="left" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
-              <GroupedButton groupKey="mimeType" value="image/svg+xml" label="SVG" type="right" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
+              <GroupedButton groupKey="mimeType" value="image/svg+xml" label="SVG" type="center" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
+              <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
+                <GroupedButton groupKey="mimeType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
+              </a>
             </span>
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
