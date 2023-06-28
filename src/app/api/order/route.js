@@ -59,3 +59,28 @@ export async function POST(req) {
     return NextResponse.json(err, {status: 500, statusText: err});
   }
 }
+
+export async function GET({ nextUrl: { searchParams }}) {
+  try {
+    const orderRequestId = searchParams.get('id');
+    if (orderRequestId === undefined) {
+      throw `No identifier found in request: ${JSON.stringify(orderRequest)}`;
+    }
+
+    console.log(`Retrieving order "${orderRequestId}"`);
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderRequestId
+      }
+    });
+
+    console.log(`Found order "${JSON.stringify(order)}"`);
+    if (order === undefined) {
+      throw `No order found for identifier "${orderRequestId}"`;
+    }
+
+    return NextResponse.json(order, {status: 200, statusText: `Found order ${orderRequestId}`});
+  } catch (err) {
+    return NextResponse.json(err, {status: 500, statusText: err});
+  }
+}

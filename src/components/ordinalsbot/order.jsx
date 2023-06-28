@@ -5,8 +5,19 @@ import { useState, useEffect } from 'react';
 
 import { getFeesFor } from '../../utils/mempool.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
+import { UNPAID, PAID } from '../../components/ordinalsbot/config.js';
 
 const SATOSHI_TO_BTC = 100000000.0;
+const RETRY_INTERVAL = 15000;
+
+async function findOrderStatus(id, callbackFunction) {
+  const ordinalsOrderReq = await fetch(`/api/order?id=${id}`);
+  if (ordinalsOrderReq.status !== 200) {
+    return;
+  }
+  const ordinalsOrder = await ordinalsOrderReq.json();
+  callbackFunction(ordinalsOrder.status);
+}
 
 async function placeOrderFor(orderData) {
   console.log(orderData);
@@ -52,7 +63,7 @@ function normalizedErrorMessage(error) {
   return JSON.stringify(error);
 }
 
-function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDetails }) {
+function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDetails, orderStatus }) {
   return (
     <div className={`${visible ? '' : 'hidden'} relative z-10`} role="dialog" aria-modal="true">
       <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
@@ -88,8 +99,8 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                 </div>
                 <div className="flex-none self-end px-6 pt-4">
                   <dt className="sr-only">Status</dt>
-                  <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                    {receiptDetails.has('status') ? receiptDetails.get('status') : 'loading...'}
+                  <dd className={`${(orderStatus === UNPAID) ? "bg-red-200 text-red-700 ring-red-600" : ((orderStatus === PAID) ? "font-medium bg-green-200 text-green-700 ring-green-600" : "ring-tangz-blue")} inline-flex items-center rounded-md px-2 py-1 text-xs ring-1 ring-inset`}>
+                    {orderStatus}
                   </dd>
                 </div>
                 <div className="mt-4 flex w-full flex-none gap-x-4 px-6 pt-6 border-t border-gray-900/5 ">
@@ -165,12 +176,17 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
   );
 }
 
-function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, orderCallback }) {
+function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, orderCallback, statusCallback }) {
 
   const [inscribeActive, setInscribeActive] = useState(true);
+  const [orderStatusChecker, setOrderStatusChecker] = useState(-1);
 
   return (
     <SimpleButton label="Inscribe" active={inscribeActive} onClick={async () => {
+        if (orderStatusChecker != -1) {
+          clearInterval(orderStatusChecker);
+        }
+        statusCallback('loading...');
         setTransactionSent(false);
         orderCallback({});
         setReceiptVisible(true);
@@ -178,6 +194,8 @@ function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, o
         try {
           const orderInformation = await placeOrderFor(orderData);
           orderCallback(orderInformation);
+          findOrderStatus(orderInformation.id, statusCallback);
+          setOrderStatusChecker(setInterval(() => findOrderStatus(orderInformation.id, statusCallback), RETRY_INTERVAL));
         } catch (err) {
           console.log(err);
           orderCallback({status: 'error', err: err});
@@ -194,6 +212,7 @@ export function OrdinalsBotOrder({ orderData }) {
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [transactionSent, setTransactionSent] = useState(false);
   const [receiptDetails, setReceiptDetails] = useState(new Map());
+  const [orderStatus, setOrderStatus] = useState('loading...');
 
   const setReceipt = (receiptDetails) => {
     setReceiptDetails(new Map(Object.entries(receiptDetails)));
@@ -201,8 +220,8 @@ export function OrdinalsBotOrder({ orderData }) {
 
   return (
     <div>
-      <OrdinalsBotReceipt orderData={orderData} visible={receiptVisible} closable={transactionSent} closeFunc={() => setReceiptVisible(false)} receiptDetails={receiptDetails} />
-      <OrdinalsBotSubmit orderData={orderData} setReceiptVisible={setReceiptVisible} setTransactionSent={setTransactionSent} orderCallback={setReceipt} />
+      <OrdinalsBotReceipt orderData={orderData} visible={receiptVisible} closable={transactionSent} closeFunc={() => setReceiptVisible(false)} receiptDetails={receiptDetails} orderStatus={orderStatus} />
+      <OrdinalsBotSubmit orderData={orderData} setReceiptVisible={setReceiptVisible} setTransactionSent={setTransactionSent} orderCallback={setReceipt} statusCallback={setOrderStatus}/>
     </div>
   );
 }

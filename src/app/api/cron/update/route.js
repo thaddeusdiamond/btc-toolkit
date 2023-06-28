@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 
 import prisma from '../../../../prisma/prisma.mjs';
 
-const ORDER_STATUS_API = 'https://api2.ordinalsbot.com/order'
-const UNPAID = 'unpaid';
+import { DEFAULT_ORDER_API, UNPAID } from '../../../../components/ordinalsbot/config.js';
 
 export async function GET() {
   try {
@@ -15,7 +14,7 @@ export async function GET() {
 
     var updatedOrders = 0;
     for (const unpaidOrder of unpaidOrders) {
-      const unpaidOrderStatusReq = await fetch(`${ORDER_STATUS_API}?id=${unpaidOrder.id}`);
+      const unpaidOrderStatusReq = await fetch(`${DEFAULT_ORDER_API}?id=${unpaidOrder.id}`);
       if (unpaidOrderStatusReq.status !== 200) {
         console.error(`Could not retrieve order status for order "${unpaidOrder.id}" (${unpaidOrderStatus.status}): ${unpaidOrderStatus.statusText}`);
       }
