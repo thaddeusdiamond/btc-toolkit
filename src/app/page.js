@@ -14,6 +14,7 @@ import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
 import { b64encodedUrl } from '../utils/html.js';
+import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
 
@@ -146,11 +147,13 @@ export default function Home() {
                   </div>
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Wallet</h4>
-                    <span className="grid grid-cols-3 rounded-md shadow-sm">
+                    <span className="grid grid-cols-4 rounded-md shadow-sm">
                       <GroupedButton groupKey="paymentMethod" value="xverse" img={defaultXVerseLogo()} label="XVerse" type="left" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => getXVerseWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))} />
                       <GroupedButton groupKey="paymentMethod" value="unisat" img={defaultUnisatLogo()} label="Unisat" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => getUnisatWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
+                      <GroupedButton groupKey="paymentMethod" value="hiro" img={defaultHiroLogo()} label="Hiro" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => getHiroWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
                       <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>
