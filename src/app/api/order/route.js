@@ -14,8 +14,8 @@ export async function POST(req) {
     const orderSubmissionData = {
       files: [{
         name: DEFAULT_FILE_NAME,
-        size: orderRequest.ordinalsHtml.length,
-        dataURL: b64encodedUrl(orderRequest.mimeType, orderRequest.ordinalsHtml)
+        size: orderRequest.codeValue.length,
+        dataURL: b64encodedUrl(orderRequest.mimeType, orderRequest.codeValue)
       }],
       receiveAddress: orderRequest.walletAddr,
       fee: orderRequest.fee,

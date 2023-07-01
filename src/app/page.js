@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image'
-import CodeMirror from '@uiw/react-codemirror';
 
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -13,7 +12,9 @@ import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
-import { b64encodedUrl } from '../utils/html.js';
+import { CodePad } from '../components/editor/codepad.jsx';
+
+import { b64encodedUrl, getCurrentCodeFromOrder } from '../utils/html.js';
 import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
@@ -33,16 +34,14 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
       <img style="width:100%;margin:0px" src="/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0" />
     </div>
   </body>
-</html>
-`;
-
-const MARKUP_MAPPINGS = {
-  'text/html': html(),
-  'image/svg+xml': xml()
-};
+</html>`;
+const DEFAULT_SVG_CODE = `<svg viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  <image href="/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0" />
+</svg>`;
 
 const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
+  ['ordinalsSvg', DEFAULT_SVG_CODE],
   ['mimeType', 'text/html'],
   ['rareSats', 'random'],
   ['inscriptionSpeed', 'hourFee'],
@@ -58,7 +57,7 @@ export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [orderData, setOrderData] = useState(DEFAULT_ORDER_DATA);
-  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')));
+  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)));
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -89,35 +88,28 @@ export default function Home() {
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
             <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
-            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')))} />
+            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)))} />
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-        <h1 className="sr-only">Recursive Inscription Code</h1>
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
-          <div className="grid grid-cols-1 gap-4 lg:col-span-7">
-            <section aria-labelledby="section-1-title">
-              <h2 className="sr-only" id="section-1-title">Recursive Inscription Code</h2>
-              <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
-                <div className="p-6">
-                  <CodeMirror
-                      value={orderData.get('ordinalsHtml')}
-                      height="600px"
-                      theme={darkMode ? 'dark' : 'light'}
-                      onChange={(value, viewUpdate) => {
-                        updateOrder('ordinalsHtml', value);
-                        if (autoRefresh) {
-                          setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
-                        }
-                      }}
-                      extensions={[MARKUP_MAPPINGS[orderData.get('mimeType')]]}
-                    />
-                </div>
-              </div>
-            </section>
-          </div>
+          <CodePad visible={orderData.get('mimeType') === 'text/html'} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
+                   changeFunc={(value, viewUpdate) => {
+                     updateOrder('ordinalsHtml', value);
+                     if (autoRefresh) {
+                       setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
+                     }
+                   }} />
+
+          <CodePad visible={orderData.get('mimeType') === 'image/svg+xml'} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
+                  changeFunc={(value, viewUpdate) => {
+                    updateOrder('ordinalsSvg', value);
+                    if (autoRefresh) {
+                      setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
+                    }
+                  }} />
 
           <div className="grid grid-cols-1 gap-4 lg:col-span-5">
             <section aria-labelledby="section-2-title">
@@ -125,7 +117,7 @@ export default function Home() {
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
                   <iframe className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
-                          src={b64encodedUrl(orderData.get('mimeType'), recursiveExpandedHtmlFor(orderData.get('ordinalsHtml')))} />
+                          src={b64encodedUrl(orderData.get('mimeType'), recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)))} />
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">

@@ -3,6 +3,7 @@
 import { validate as btc_validate } from 'bitcoin-address-validation';
 import { useState, useEffect } from 'react';
 
+import { getCurrentCodeFromOrder } from '../../utils/html.js';
 import { getFeesFor } from '../../utils/mempool.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
 import { UNPAID, PAID } from '../../components/ordinalsbot/config.js';
@@ -30,7 +31,7 @@ async function placeOrderFor(orderData) {
   const fee = await getFeesFor(inscriptionSpeed);
 
   const orderSubmissionData = {
-    ordinalsHtml: orderData.get('ordinalsHtml'),
+    codeValue: getCurrentCodeFromOrder(orderData),
     mimeType: orderData.get('mimeType'),
     rareSats: orderData.get('rareSats'),
     walletAddr: walletAddr,
