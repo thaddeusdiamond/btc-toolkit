@@ -4,6 +4,7 @@ import Image from 'next/image'
 
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
@@ -14,7 +15,7 @@ import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
 
-import { b64encodedUrl, getCurrentCodeFromOrder } from '../utils/html.js';
+import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
 import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
@@ -38,11 +39,20 @@ const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 const DEFAULT_SVG_CODE = `<svg viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
   <image href="/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0" />
 </svg>`;
+const DEFAULT_P5JS_CODE = `let img;
+function preload() {
+  img = loadImage('/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0');
+}
+function setup() {
+  createCanvas(420, 420);
+  image(img, 0, 0, 420, 420);
+}`
 
 const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
   ['ordinalsSvg', DEFAULT_SVG_CODE],
-  ['mimeType', 'text/html'],
+  ['ordinalsP5', DEFAULT_P5JS_CODE],
+  ['contentType', HTML_TYPE],
   ['rareSats', 'random'],
   ['inscriptionSpeed', 'hourFee'],
   ['paymentMethod', 'invoice'],
@@ -57,7 +67,7 @@ export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [orderData, setOrderData] = useState(DEFAULT_ORDER_DATA);
-  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)));
+  const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(getCurrentCodeFromOrder(orderData));
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -79,37 +89,49 @@ export default function Home() {
         <div className="grid grid-cols-12 items-center gap-8">
           <div className="col-span-5 md:col-span-7">
             <span className="isolate inline-flex rounded-md shadow-sm">
-              <GroupedButton groupKey="mimeType" value="text/html" label="HTML" type="left" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
-              <GroupedButton groupKey="mimeType" value="image/svg+xml" label="SVG" type="center" currentValue={orderData.get('mimeType')} setValue={updateOrder} />
+              <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+              <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+              <GroupedButton groupKey="contentType" value={P5_TYPE} label="P5.js" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
               <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
-                <GroupedButton groupKey="mimeType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
+                <GroupedButton groupKey="contentType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
               </a>
             </span>
           </div>
           <div className="flex justify-between col-span-7 md:col-span-5">
             <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
-            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)))} />
+            <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
-          <CodePad visible={orderData.get('mimeType') === 'text/html'} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
+          <CodePad visible={orderData.get('contentType') === HTML_TYPE} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
                    changeFunc={(value, viewUpdate) => {
                      updateOrder('ordinalsHtml', value);
                      if (autoRefresh) {
-                       setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
+                       setOrdinalsPreviewFrame(value);
                      }
                    }} />
 
-          <CodePad visible={orderData.get('mimeType') === 'image/svg+xml'} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
+          <CodePad visible={orderData.get('contentType') === SVG_TYPE} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
                   changeFunc={(value, viewUpdate) => {
                     updateOrder('ordinalsSvg', value);
                     if (autoRefresh) {
-                      setOrdinalsPreviewFrame(recursiveExpandedHtmlFor(value));
+                      setOrdinalsPreviewFrame(value);
                     }
                   }} />
+
+         <CodePad visible={orderData.get('contentType') === P5_TYPE} codeValue={orderData.get('ordinalsP5')} extensions={javascript()} darkMode={darkMode}
+                 changeFunc={(value, viewUpdate) => {
+                   updateOrder('ordinalsP5', value);
+                   if (autoRefresh) {
+                     setOrdinalsPreviewFrame(value);
+                   }
+                 }} />
 
           <div className="grid grid-cols-1 gap-4 lg:col-span-5">
             <section aria-labelledby="section-2-title">
@@ -117,7 +139,7 @@ export default function Home() {
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
                   <iframe className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
-                          src={b64encodedUrl(orderData.get('mimeType'), recursiveExpandedHtmlFor(getCurrentCodeFromOrder(orderData)))} />
+                          src={b64encodedUrl(orderData.get('contentType'), recursiveExpandedHtmlFor(getHtmlPageFor(orderData.get('contentType'), ordinalsPreviewFrame)))} />
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">

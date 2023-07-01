@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { b64encodedUrl } from '../../../utils/html.js';
+import { b64encodedUrl, getHtmlPageFor } from '../../../utils/html.js';
 import { DEFAULT_ORDER_URL, DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 
 import prisma from '../../../prisma/prisma.mjs';
@@ -11,11 +11,13 @@ export async function POST(req) {
   try {
     const orderRequest = await req.json();
     console.log(`Processing order: ${JSON.stringify(orderRequest)}`);
+    const contentType = orderRequest.contentType;
+    const dataURL = b64encodedUrl(contentType, getHtmlPageFor(contentType, orderRequest.codeValue));
     const orderSubmissionData = {
       files: [{
         name: DEFAULT_FILE_NAME,
         size: orderRequest.codeValue.length,
-        dataURL: b64encodedUrl(orderRequest.mimeType, orderRequest.codeValue)
+        dataURL: dataURL
       }],
       receiveAddress: orderRequest.walletAddr,
       fee: orderRequest.fee,

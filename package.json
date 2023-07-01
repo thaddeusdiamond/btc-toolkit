@@ -18,6 +18,7 @@
   "dependencies": {
     "autoprefixer": "10.4.14",
     "bitcoin-address-validation": "2.2.1",
+    "@codemirror/lang-javascript": "6.1.9",
     "@codemirror/lang-html": "6.4.5",
     "@codemirror/lang-xml": "6.0.2",
     "eslint": "8.43.0",

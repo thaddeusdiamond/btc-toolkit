@@ -61,7 +61,7 @@ async function placeOrderFor(orderData) {
 
   const orderSubmissionData = {
     codeValue: getCurrentCodeFromOrder(orderData),
-    mimeType: orderData.get('mimeType'),
+    contentType: orderData.get('contentType'),
     rareSats: orderData.get('rareSats'),
     walletAddr: walletAddr,
     fee: fee
