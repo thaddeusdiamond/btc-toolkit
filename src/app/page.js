@@ -86,21 +86,19 @@ export default function Home() {
       <ToastContainer theme={darkMode ? "dark" : "light"}/>
 
       <div className="border-t border-white mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-opacity-20 py-5 lg:block">
-        <div className="grid grid-cols-12 items-center gap-8">
-          <div className="col-span-5 md:col-span-7">
-            <span className="isolate inline-flex rounded-md shadow-sm">
-              <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
-                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
-              <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
-                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
-              <GroupedButton groupKey="contentType" value={P5_TYPE} label="P5.js" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
-                             onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
-              <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
-                <GroupedButton groupKey="contentType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
-              </a>
-            </span>
+        <div className="flex flex-wrap md:grid md:flex-nowrap justify-center md:grid-cols-12 items-center gap-8">
+          <div className="w-full mx-auto inline-flex justify-center md:justify-start md:col-span-7">
+            <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <GroupedButton groupKey="contentType" value={P5_TYPE} label="P5.js" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
+              <GroupedButton groupKey="contentType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
+            </a>
           </div>
-          <div className="flex justify-between col-span-7 md:col-span-5">
+          <div className="flex justify-between w-full md:col-span-5">
             <Toggle label="Auto-Refresh" toggle={autoRefresh} setToggle={setAutoRefresh} />
             <SimpleButton label="Refresh" active={!autoRefresh} onClick={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
           </div>
