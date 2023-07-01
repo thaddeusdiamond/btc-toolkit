@@ -5,11 +5,38 @@ import { useState, useEffect } from 'react';
 
 import { getCurrentCodeFromOrder } from '../../utils/html.js';
 import { getFeesFor } from '../../utils/mempool.js';
+import { sendBitcoinFromHiro } from '../../utils/hiro.js';
+import { sendBitcoinFromUnisat } from '../../utils/unisat.js';
+import { sendBitcoinFromXverse } from '../../utils/xverse.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
-import { UNPAID, PAID } from '../../components/ordinalsbot/config.js';
+import { PENDING, UNPAID, PAID } from '../../components/ordinalsbot/config.js';
 
 const SATOSHI_TO_BTC = 100000000.0;
 const RETRY_INTERVAL = 15000;
+
+async function attemptTransactionFor(orderData, orderInformation) {
+  try {
+    switch (orderData.get('paymentMethod')) {
+      case 'invoice':
+        return UNPAID;
+      case 'hiro':
+        await sendBitcoinFromHiro(orderInformation.amount, orderInformation.address);
+        break;
+      case 'unisat':
+        await sendBitcoinFromUnisat(orderInformation.amount, orderInformation.address);
+        break;
+      case 'xverse':
+        await sendBitcoinFromXverse(orderInformation.amount, orderInformation.address);
+        break;
+      default:
+        throw `Unknown order payment method: ${orderData.get('paymentMethod')}`;
+    }
+    orderInformation.addressLanguage = 'Payment was sent to ';
+    return PENDING;
+  } catch (err) {
+    return UNPAID;
+  }
+}
 
 async function findOrderStatus(id, callbackFunction) {
   const ordinalsOrderReq = await fetch(`/api/order?id=${id}`);
@@ -17,7 +44,9 @@ async function findOrderStatus(id, callbackFunction) {
     return;
   }
   const ordinalsOrder = await ordinalsOrderReq.json();
-  callbackFunction(ordinalsOrder.status);
+  if (ordinalsOrder.status !== UNPAID) {
+    callbackFunction(ordinalsOrder.status);
+  }
 }
 
 async function placeOrderFor(orderData) {
@@ -64,6 +93,18 @@ function normalizedErrorMessage(error) {
   return JSON.stringify(error);
 }
 
+function statusColorFor(orderStatus) {
+  switch (orderStatus) {
+    case UNPAID:
+      return "bg-red-200 text-red-700 ring-red-600";
+    case PENDING:
+      return "bg-yellow-200 text-yellow-700 ring-yellow-600";
+    case PAID:
+      return "font-medium bg-green-200 text-green-700 ring-green-600";
+  }
+  return "ring-tangz-blue";
+}
+
 function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDetails, orderStatus }) {
   return (
     <div className={`${visible ? '' : 'hidden'} relative z-10`} role="dialog" aria-modal="true">
@@ -100,11 +141,11 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                 </div>
                 <div className="flex-none self-end px-6 pt-4">
                   <dt className="sr-only">Status</dt>
-                  <dd className={`${(orderStatus === UNPAID) ? "bg-red-200 text-red-700 ring-red-600" : ((orderStatus === PAID) ? "font-medium bg-green-200 text-green-700 ring-green-600" : "ring-tangz-blue")} inline-flex items-center rounded-md px-2 py-1 text-xs ring-1 ring-inset`}>
+                  <dd className={`${statusColorFor(orderStatus)} inline-flex items-center rounded-md px-2 py-1 text-xs ring-1 ring-inset`}>
                     {orderStatus}
                   </dd>
                 </div>
-                <div className="mt-4 flex w-full flex-none gap-x-4 px-6 pt-6 border-t border-gray-900/5 ">
+                <div className="mt-4 flex w-full flex-none gap-x-4 px-6 pt-6 border-t border-gray-400">
                   <dt className="flex-none">
                     <span className="sr-only">Address</span>
                     <svg className="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -112,7 +153,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                     </svg>
                   </dt>
                   <dd className="text-sm font-medium leading-6 break-all">
-                    Send to {receiptDetails.has('address') ? receiptDetails.get('address') : '(order address will populate here)'}
+                    {receiptDetails.has('addressLanguage') ? receiptDetails.get('addressLanguage') : 'To complete, send payment to'} {receiptDetails.has('address') ? receiptDetails.get('address') : '(order address will populate here)'}
                   </dd>
                 </div>
                 <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
@@ -124,7 +165,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                     </svg>
                   </dt>
                   <dd className="text-sm leading-6 break-all">
-                    Complete by {receiptDetails.has('created_at') ? new Date((receiptDetails.get('created_at') + receiptDetails.get('ttl')) *  1000).toLocaleString() : '(expiration will populate here)'}
+                    Transaction must be completed by {receiptDetails.has('created_at') ? new Date((receiptDetails.get('created_at') + receiptDetails.get('ttl')) *  1000).toLocaleString() : '(expiration will populate here)'} to validly inscribe
                   </dd>
                 </div>
                 <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
@@ -163,7 +204,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
                   </dd>
                 </div>
               </dl>
-              <div className="mt-6 flex justify-between border-t border-gray-900/5 px-6 py-6">
+              <div className="mt-6 flex justify-between border-t border-gray-400 px-6 py-6">
                 <CancelButton label="Close" active={closable} onClick={closeFunc} />
                 <a href={receiptDetails.has('hosted_checkout_url') ? receiptDetails.get('hosted_checkout_url') : '#'} target="_blank">
                   <SimpleButton label="Checkout on OpenNode" active={closable} onClick={null} />
@@ -177,7 +218,7 @@ function OrdinalsBotReceipt({ orderData, visible, closable, closeFunc, receiptDe
   );
 }
 
-function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, orderCallback, statusCallback }) {
+function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, setReceipt, setOrderStatus }) {
 
   const [inscribeActive, setInscribeActive] = useState(true);
   const [orderStatusChecker, setOrderStatusChecker] = useState(-1);
@@ -187,19 +228,22 @@ function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, o
         if (orderStatusChecker != -1) {
           clearInterval(orderStatusChecker);
         }
-        statusCallback('loading...');
+        setOrderStatus('loading...');
         setTransactionSent(false);
-        orderCallback({});
+        setReceipt({});
         setReceiptVisible(true);
         setInscribeActive(false);
         try {
           const orderInformation = await placeOrderFor(orderData);
-          orderCallback(orderInformation);
-          findOrderStatus(orderInformation.id, statusCallback);
-          setOrderStatusChecker(setInterval(() => findOrderStatus(orderInformation.id, statusCallback), RETRY_INTERVAL));
+          setReceipt(orderInformation);
+
+          const updatedOrderStatus = await attemptTransactionFor(orderData, orderInformation);
+          setOrderStatus(updatedOrderStatus);
+          setOrderStatusChecker(setInterval(() => findOrderStatus(orderInformation.id, setOrderStatus), RETRY_INTERVAL));
+          setReceipt(orderInformation);
         } catch (err) {
           console.log(err);
-          orderCallback({status: 'error', err: err});
+          setReceipt({status: 'error', err: err});
         } finally {
           setInscribeActive(true);
           setTransactionSent(true);
@@ -222,7 +266,7 @@ export function OrdinalsBotOrder({ orderData }) {
   return (
     <div>
       <OrdinalsBotReceipt orderData={orderData} visible={receiptVisible} closable={transactionSent} closeFunc={() => setReceiptVisible(false)} receiptDetails={receiptDetails} orderStatus={orderStatus} />
-      <OrdinalsBotSubmit orderData={orderData} setReceiptVisible={setReceiptVisible} setTransactionSent={setTransactionSent} orderCallback={setReceipt} statusCallback={setOrderStatus}/>
+      <OrdinalsBotSubmit orderData={orderData} setReceiptVisible={setReceiptVisible} setTransactionSent={setTransactionSent} setReceipt={setReceipt} setOrderStatus={setOrderStatus}/>
     </div>
   );
 }

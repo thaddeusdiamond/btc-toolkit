@@ -10,6 +10,7 @@ export async function getHiroWalletAddress() {
     if (hiroData === undefined) {
       throw 'Hiro Wallet is not installed';
     }
+    
     const userAddresses = hiroData?.result?.addresses;
     if (userAddresses === undefined || userAddresses.length < 1) {
       throw 'Could not detect Hiro addresses';
@@ -25,4 +26,13 @@ export async function getHiroWalletAddress() {
   } catch (err) {
     throw `An error occurred with Hiro: ${err}`;
   }
+}
+
+export async function sendBitcoinFromHiro(amount, address) {
+  const resp = await window.btc?.request('sendTransfer', {
+    address: address,
+    amount: amount
+  });
+
+  return resp.result.txid;
 }

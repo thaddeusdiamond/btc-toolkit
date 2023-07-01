@@ -16,3 +16,8 @@ export async function getUnisatWalletAddress() {
     throw 'User did not grant access to Unisat';
   }
 }
+
+export async function sendBitcoinFromUnisat(amount, address) {
+  const txid = await window.unisat?.sendBitcoin(address, amount);
+  return txid;
+}
