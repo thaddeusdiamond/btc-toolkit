@@ -16,7 +16,7 @@ export async function GET() {
     for (const unpaidOrder of unpaidOrders) {
       const unpaidOrderStatusReq = await fetch(`${DEFAULT_ORDER_API}?id=${unpaidOrder.id}`);
       if (unpaidOrderStatusReq.status !== 200) {
-        console.error(`Could not retrieve order status for order "${unpaidOrder.id}" (${unpaidOrderStatus.status}): ${unpaidOrderStatus.statusText}`);
+        console.error(`Could not retrieve order status for order "${unpaidOrder.id}" (${unpaidOrderStatusReq.status}): ${unpaidOrderStatusReq.statusText}`);
       }
       const unpaidOrderStatus = await unpaidOrderStatusReq.json();
       const newOrderStatus = unpaidOrderStatus.charge.status;
