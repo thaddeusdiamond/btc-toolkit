@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { javascript } from '@codemirror/lang-javascript';
+import { json } from '@codemirror/lang-json';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 
@@ -15,7 +16,7 @@ import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
 
-import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
+import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
 import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
@@ -48,9 +49,17 @@ function setup() {
   image(img, 0, 0, 420, 420);
 }`
 
+const DEFAULT_JSON_CODE = `{
+  attributes: {
+    foo: true,
+    bar: 12345
+  }
+}`
+
 const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
   ['ordinalsSvg', DEFAULT_SVG_CODE],
+  ['ordinalsJson', DEFAULT_JSON_CODE],
   ['ordinalsP5', DEFAULT_P5JS_CODE],
   ['contentType', HTML_TYPE],
   ['rareSats', 'random'],
@@ -92,6 +101,8 @@ export default function Home() {
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <GroupedButton groupKey="contentType" value={JSON_TYPE} label="JSON" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={P5_TYPE} label="P5.js" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
@@ -122,6 +133,14 @@ export default function Home() {
                       setOrdinalsPreviewFrame(value);
                     }
                   }} />
+
+         <CodePad visible={orderData.get('contentType') === JSON_TYPE} codeValue={orderData.get('ordinalsJson')} extensions={json()} darkMode={darkMode}
+                 changeFunc={(value, viewUpdate) => {
+                   updateOrder('ordinalsJson', value);
+                   if (autoRefresh) {
+                     setOrdinalsPreviewFrame(value);
+                   }
+                 }} />
 
          <CodePad visible={orderData.get('contentType') === P5_TYPE} codeValue={orderData.get('ordinalsP5')} extensions={javascript()} darkMode={darkMode}
                  changeFunc={(value, viewUpdate) => {
