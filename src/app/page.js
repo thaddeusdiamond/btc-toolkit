@@ -155,8 +155,11 @@ export default function Home() {
               <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
-                  <iframe className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
+                  <iframe id="recursivePreviewFrame" className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
                           src={b64encodedUrl(orderData.get('contentType'), recursiveExpandedHtmlFor(getHtmlPageFor(orderData.get('contentType'), ordinalsPreviewFrame)))} />
+                  <div className="mt-2 w-full flex justify-center">
+                    <SimpleButton label="Preview in Full Screen" active={true} onClick={() => document.getElementById('recursivePreviewFrame').requestFullscreen()} />
+                  </div>
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">
