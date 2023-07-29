@@ -50,7 +50,7 @@ export async function GET() {
     console.log(`Successfully updated ${updatedOrders} orders`);
     return NextResponse.json({updatedOrders: updatedOrders}, {status: 200, statusText: `Successfully updated ${updatedOrders} orders`});
   } catch (err) {
-    console.error(err);
+    console.error(JSON.stringify(err));
     return NextResponse.json(err, {status: 500, statusText: err});
   }
 }

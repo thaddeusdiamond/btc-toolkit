@@ -58,6 +58,7 @@ export async function POST(req) {
 
     return NextResponse.json(orderSubmission, {status: 200, statusText: `Successfully placed order ${orderSubmission.charge.id}`});
   } catch (err) {
+    console.error(err);
     return NextResponse.json(err, {status: 500, statusText: err});
   }
 }
