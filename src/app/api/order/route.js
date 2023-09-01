@@ -24,7 +24,7 @@ export async function POST(req) {
       lowPostage: false,
       rareSats: orderRequest.rareSats,
       referral: DEFAULT_REFERRAL_CODE,
-      additionalFee: 1000
+      additionalFee: 4000
     }
 
     console.log(JSON.stringify(orderSubmissionData));
