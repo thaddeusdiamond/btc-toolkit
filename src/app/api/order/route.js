@@ -12,11 +12,12 @@ export async function POST(req) {
     const orderRequest = await req.json();
     console.log(`Processing order: ${JSON.stringify(orderRequest)}`);
     const contentType = orderRequest.contentType;
-    const dataURL = b64encodedUrl(contentType, getHtmlPageFor(contentType, orderRequest.codeValue));
+    const rawHtml = getHtmlPageFor(contentType, orderRequest.codeValue);
+    const dataURL = b64encodedUrl(contentType, rawHtml);
     const orderSubmissionData = {
       files: [{
         name: DEFAULT_FILE_NAME,
-        size: orderRequest.codeValue.length,
+        size: rawHtml.length,
         dataURL: dataURL
       }],
       receiveAddress: orderRequest.walletAddr,
