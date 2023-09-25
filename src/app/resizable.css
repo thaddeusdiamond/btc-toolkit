@@ -1,0 +1,24 @@
+.react-resizable-handle {
+  position: absolute;
+  bottom: 2px;
+  z-index: 10000;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .react-resizable-handle {
+    left: 2px;
+  }
+
+  .react-resizable-handle::after {
+    content: '⬋';
+    color: #9ca3af;
+  }
+}
+
+@media (max-width: 640px) {
+  .react-resizable-handle {
+    display: none;
+  }
+}

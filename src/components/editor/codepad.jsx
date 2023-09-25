@@ -2,7 +2,7 @@ import CodeMirror from '@uiw/react-codemirror';
 
 export function CodePad({ visible, codeValue, changeFunc, extensions, darkMode }) {
   return (
-    <div className={`${visible ? '' : 'hidden'} grid grid-cols-1 gap-4 lg:col-span-7`}>
+    <div className={`${visible ? '' : 'hidden'}`}>
       <section aria-labelledby="section-1-title">
         <h2 className="sr-only" id="section-1-title">Recursive Inscription Code</h2>
         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">

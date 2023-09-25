@@ -2,7 +2,8 @@
 
 import Image from 'next/image'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Resizable } from 'react-resizable';
 import { ToastContainer, toast } from 'react-toastify';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
@@ -20,6 +21,8 @@ import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON
 import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
+
+import './resizable.css';
 
 const RECURSIVE_CONTENT_REGEXP = /\/content\//g;
 const RECURSIVE_CONTENT_HOST = 'https://ord-mirror.magiceden.dev'
@@ -68,6 +71,10 @@ const DEFAULT_ORDER_DATA = new Map([
   ['walletAddr', '']
 ])
 
+const MIN_CODEPAD_WIDTH = 400;
+const SMALL_TRANSITION_WIDTH = 640;
+const CODEPAD_PERCENTAGE = 0.58;
+
 function recursiveExpandedHtmlFor(value) {
   return value.replaceAll(RECURSIVE_CONTENT_REGEXP, `${RECURSIVE_CONTENT_HOST}$&`);
 }
@@ -85,9 +92,30 @@ export default function Home() {
     }
     window.matchMedia('(prefers-color-scheme: dark)')
           .addEventListener('change', event => setDarkMode(event.matches));
+
+    initializeWindow();
+    window.addEventListener('resize', initializeWindow);
   }, []);
 
   const updateOrder = (key, value) => setOrderData(new Map(orderData.set(key, value)));
+
+  const containerRef = useRef();
+  const [previewWidth, setPreviewWidth] = useState(0);
+  const [codepadWidth, setCodepadWidth] = useState(0);
+  const onResize = (event, {node, size, handle}) => {
+    const containerWidth = containerRef.current.offsetWidth;
+    if (containerWidth < SMALL_TRANSITION_WIDTH) {
+      return;
+    }
+    const codepadWidth = Math.max(containerWidth - size.width, MIN_CODEPAD_WIDTH);
+    setCodepadWidth(codepadWidth);
+    setPreviewWidth(containerWidth - codepadWidth);
+  }
+  const initializeWindow = () => {
+    const containerWidth = containerRef.current.offsetWidth;
+    setPreviewWidth(containerWidth < SMALL_TRANSITION_WIDTH ? containerWidth : (containerWidth * (1 - CODEPAD_PERCENTAGE)));
+    setCodepadWidth(containerWidth < SMALL_TRANSITION_WIDTH ? containerWidth : (containerWidth * CODEPAD_PERCENTAGE));
+  }
 
   return (
     <div className="min-h-screen">
@@ -117,45 +145,47 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-8">
-          <CodePad visible={orderData.get('contentType') === HTML_TYPE} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
+        <div className="flex flex-wrap sm:flex-nowrap items-start gap-6" ref={containerRef}>
+          <div className="relative" style={{width: codepadWidth}}>
+            <CodePad visible={orderData.get('contentType') === HTML_TYPE} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
+                     changeFunc={(value, viewUpdate) => {
+                       updateOrder('ordinalsHtml', value);
+                       if (autoRefresh) {
+                         setOrdinalsPreviewFrame(value);
+                       }
+                     }} />
+
+            <CodePad visible={orderData.get('contentType') === SVG_TYPE} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
+                    changeFunc={(value, viewUpdate) => {
+                      updateOrder('ordinalsSvg', value);
+                      if (autoRefresh) {
+                        setOrdinalsPreviewFrame(value);
+                      }
+                    }} />
+
+           <CodePad visible={orderData.get('contentType') === JSON_TYPE} codeValue={orderData.get('ordinalsJson')} extensions={json()} darkMode={darkMode}
                    changeFunc={(value, viewUpdate) => {
-                     updateOrder('ordinalsHtml', value);
+                     updateOrder('ordinalsJson', value);
                      if (autoRefresh) {
                        setOrdinalsPreviewFrame(value);
                      }
                    }} />
 
-          <CodePad visible={orderData.get('contentType') === SVG_TYPE} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
-                  changeFunc={(value, viewUpdate) => {
-                    updateOrder('ordinalsSvg', value);
-                    if (autoRefresh) {
-                      setOrdinalsPreviewFrame(value);
-                    }
-                  }} />
+           <CodePad visible={orderData.get('contentType') === P5_TYPE} codeValue={orderData.get('ordinalsP5')} extensions={javascript()} darkMode={darkMode}
+                   changeFunc={(value, viewUpdate) => {
+                     updateOrder('ordinalsP5', value);
+                     if (autoRefresh) {
+                       setOrdinalsPreviewFrame(value);
+                     }
+                   }} />
+          </div>
 
-         <CodePad visible={orderData.get('contentType') === JSON_TYPE} codeValue={orderData.get('ordinalsJson')} extensions={json()} darkMode={darkMode}
-                 changeFunc={(value, viewUpdate) => {
-                   updateOrder('ordinalsJson', value);
-                   if (autoRefresh) {
-                     setOrdinalsPreviewFrame(value);
-                   }
-                 }} />
-
-         <CodePad visible={orderData.get('contentType') === P5_TYPE} codeValue={orderData.get('ordinalsP5')} extensions={javascript()} darkMode={darkMode}
-                 changeFunc={(value, viewUpdate) => {
-                   updateOrder('ordinalsP5', value);
-                   if (autoRefresh) {
-                     setOrdinalsPreviewFrame(value);
-                   }
-                 }} />
-
-          <div className="grid grid-cols-1 gap-4 lg:col-span-5">
-            <section aria-labelledby="section-2-title">
+          <Resizable className="relative" width={previewWidth} minConstraints={[360, 360]} resizeHandles={["sw"]} onResize={onResize}>
+            <div className="w-full">
               <h2 className="sr-only" id="section-2-title">Preview and Purchase</h2>
               <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-700">
                 <div className="p-6">
-                  <iframe id="recursivePreviewFrame" className="aspect-square h-full w-full max-w-xl border-4 border-tangz-blue-darker" sandbox="allow-scripts"
+                  <iframe id="recursivePreviewFrame" className="aspect-square h-full w-full border-4 border-tangz-blue-darker" sandbox="allow-scripts"
                           src={b64encodedUrl(orderData.get('contentType'), recursiveExpandedHtmlFor(getHtmlPageFor(orderData.get('contentType'), ordinalsPreviewFrame)))} />
                   <div className="mt-2 w-full flex justify-center">
                     <SimpleButton label="Preview in Full Screen" active={true} onClick={() => document.getElementById('recursivePreviewFrame').requestFullscreen()} />
@@ -203,8 +233,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
+            </div>
+          </Resizable>
         </div>
       </div>
     </div>
