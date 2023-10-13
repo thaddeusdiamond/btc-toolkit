@@ -1,13 +1,10 @@
 'use client';
 
 import { validate as btc_validate } from 'bitcoin-address-validation';
+import { Wallets, Mempool } from 'btc-dapp-js';
 import { useState, useEffect } from 'react';
 
 import { getCurrentCodeFromOrder } from '../../utils/html.js';
-import { getFeesFor } from '../../utils/mempool.js';
-import { sendBitcoinFromHiro } from '../../utils/hiro.js';
-import { sendBitcoinFromUnisat } from '../../utils/unisat.js';
-import { sendBitcoinFromXverse } from '../../utils/xverse.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
 import { PENDING, UNPAID, PAID } from '../../components/ordinalsbot/config.js';
 
@@ -16,18 +13,14 @@ const RETRY_INTERVAL = 15000;
 
 async function attemptTransactionFor(orderData, orderInformation) {
   try {
-    switch (orderData.get('paymentMethod')) {
+    const walletProvider = orderData.get('paymentMethod');
+    switch (walletProvider) {
       case 'invoice':
         return UNPAID;
-      case 'hiro':
-        await sendBitcoinFromHiro(orderInformation.amount, orderInformation.address);
-        break;
-      case 'unisat':
-        await sendBitcoinFromUnisat(orderInformation.amount, orderInformation.address);
-        break;
-      case 'xverse':
-        await sendBitcoinFromXverse(orderInformation.amount, orderInformation.address);
-        break;
+      case Wallets.HIRO_WALLET:
+      case Wallets.UNISAT_WALLET:
+      case Wallets.XVERSE_WALLET:
+        await Wallets.sendBtc(walletProvider, orderInformation.address, orderInformation.amount);
       default:
         throw `Unknown order payment method: ${orderData.get('paymentMethod')}`;
     }
@@ -57,7 +50,7 @@ async function placeOrderFor(orderData) {
   }
 
   const inscriptionSpeed = orderData.get('inscriptionSpeed');
-  const fee = await getFeesFor(inscriptionSpeed);
+  const fee = await Mempool.getFeesFor(inscriptionSpeed);
 
   const orderSubmissionData = {
     codeValue: getCurrentCodeFromOrder(orderData),

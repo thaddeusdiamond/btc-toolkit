@@ -3,11 +3,11 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from "tiny-secp256k1";
 
+import { Mempool } from "btc-dapp-js";
 import { Buffer } from 'node:buffer';
 import { NextResponse } from 'next/server';
 
 import { getByteCount } from "../../../../utils/btc_fees.js";
-import { getFeesFor } from "../../../../utils/mempool.js";
 
 const DEFAULT_FEE_RATE = 'fastestFee';
 const LOCKED_SATS = 10000;
@@ -86,7 +86,7 @@ export async function POST(req) {
     initializeRequest();
 
     const feeRate = sweepRequest.feeRate ? sweepRequest.feeRate : DEFAULT_FEE_RATE
-    const satsPerVByte = await getFeesFor(feeRate);
+    const satsPerVByte = await Mempool.getFeesFor(feeRate);
     const psbt = new bitcoin.Psbt();
     for (const buyingDatum of buyingData) {
       const marketPsbt = bitcoin.Psbt.fromBase64(buyingDatum.unsignedBuyingPSBTBase64);

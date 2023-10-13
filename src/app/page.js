@@ -9,6 +9,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
+import { Wallets } from 'btc-dapp-js';
 
 import { DEFAULT_ORDER_URL, DEFAULT_REFERRAL_CODE } from '../components/ordinalsbot/config.js';
 import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
@@ -18,9 +19,6 @@ import { Toggle } from '../components/widgets/toggle.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
 
 import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
-import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
-import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
-import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
 
 import './resizable.css';
 
@@ -212,12 +210,12 @@ export default function Home() {
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Wallet</h4>
                     <span className="grid grid-cols-4 rounded-md shadow-sm">
-                      <GroupedButton groupKey="paymentMethod" value="xverse" img={defaultXVerseLogo()} label="XVerse" type="left" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
-                                     onClickFunc={() => getXVerseWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))} />
-                      <GroupedButton groupKey="paymentMethod" value="unisat" img={defaultUnisatLogo()} label="Unisat" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
-                                     onClickFunc={() => getUnisatWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
-                      <GroupedButton groupKey="paymentMethod" value="hiro" img={defaultHiroLogo()} label="Hiro" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
-                                     onClickFunc={() => getHiroWalletAddress().then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
+                      <GroupedButton groupKey="paymentMethod" value="xverse" img={Wallets.defaultLogo(Wallets.XVERSE_WALLET)} label="XVerse" type="left" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => Wallets.getWalletAddress(Wallets.XVERSE_WALLET, Wallets.ORDINALS_TYPE).then(walletAddr => updateOrder("walletAddr", walletAddr))} />
+                      <GroupedButton groupKey="paymentMethod" value="unisat" img={Wallets.defaultLogo(Wallets.UNISAT_WALLET)} label="Unisat" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => Wallets.getWalletAddress(Wallets.UNISAT_WALLET, Wallets.ORDINALS_TYPE).then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
+                      <GroupedButton groupKey="paymentMethod" value="hiro" img={Wallets.defaultLogo(Wallets.HIRO_WALLET)} label="Hiro" type="center" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
+                                     onClickFunc={() => Wallets.getWalletAddress(Wallets.HIRO_WALLET, Wallets.ORDINALS_TYPE).then(walletAddr => updateOrder("walletAddr", walletAddr))}/>
                       <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>

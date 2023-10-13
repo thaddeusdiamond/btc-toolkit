@@ -2,7 +2,7 @@
 
 import * as bitcoin from 'bitcoinjs-lib';
 
-import { UNISAT_WALLET, HIRO_WALLET, XVERSE_WALLET, ORDINALS_TYPE, PAYMENT_TYPE, getWalletAddress, signPsbt } from "../../utils/wallets.js";
+import { Wallets } from "btc-dapp-js";
 
 const API_BASE = 'https://api-mainnet.magiceden.io/v2';
 const ORD_BUYING_PATH = 'ord/btc/psbt/buying';
@@ -31,8 +31,8 @@ async function getBuyingDataFromME(paymentAddress, receiveAddress, inscription) 
 
 async function sendForTxn(walletProvider, inscriptions) {
   try {
-    const paymentAddress = await getWalletAddress(walletProvider, PAYMENT_TYPE);
-    const ordinalsAddress = await getWalletAddress(walletProvider, ORDINALS_TYPE);
+    const paymentAddress = await Wallets.getWalletAddress(walletProvider, Wallets.PAYMENT_TYPE);
+    const ordinalsAddress = await Wallets.getWalletAddress(walletProvider, Wallets.ORDINALS_TYPE);
 
     const buyingData = [];
     for (const inscription of inscriptions) {
@@ -59,7 +59,7 @@ async function sendForTxn(walletProvider, inscriptions) {
     const psbtData = await psbtReq.json();
     console.log(JSON.stringify(psbtData));
 
-    const txResult = await signPsbt(walletProvider, psbtData.psbt);
+    const txResult = await Wallets.signPsbt(walletProvider, psbtData.psbt);
     console.log('PSBT Signed:');
     console.log(txResult.toUpperCase());
 
@@ -75,10 +75,10 @@ export default function Sweep() {
 
   return (
     <div>
-      <a onClick={() => sendForTxn(UNISAT_WALLET, INSCRIPTIONS)}>
+      <a onClick={() => sendForTxn(Wallets.UNISAT_WALLET, INSCRIPTIONS)}>
         Unisat
       </a>
-      <a onClick={() => sendForTxn(HIRO_WALLET, INSCRIPTIONS)}>
+      <a onClick={() => sendForTxn(Wallets.HIRO_WALLET, INSCRIPTIONS)}>
         Hiro
       </a>
     </div>
