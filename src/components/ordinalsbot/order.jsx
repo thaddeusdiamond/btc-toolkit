@@ -10,6 +10,7 @@ import { sendBitcoinFromUnisat } from '../../utils/unisat.js';
 import { sendBitcoinFromXverse } from '../../utils/xverse.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
 import { PENDING, UNPAID, PAID } from '../../components/ordinalsbot/config.js';
+import { COLLECTION_FILES } from '../../components/editor/compressor.jsx';
 
 const SATOSHI_TO_BTC = 100000000.0;
 const RETRY_INTERVAL = 15000;
@@ -59,19 +60,23 @@ async function placeOrderFor(orderData) {
   const inscriptionSpeed = orderData.get('inscriptionSpeed');
   const fee = await getFeesFor(inscriptionSpeed);
 
+  const orderSubmissionForm = new FormData();
   const orderSubmissionData = {
     codeValue: getCurrentCodeFromOrder(orderData),
     contentType: orderData.get('contentType'),
     rareSats: orderData.get('rareSats'),
     walletAddr: walletAddr,
-    fee: fee
+    fee: fee,
   }
+  orderSubmissionForm.append('metadata', JSON.stringify(orderSubmissionData))
+
+  orderData.get(COLLECTION_FILES).forEach((value, key) => {
+    orderSubmissionForm.append('additionalFiles[]', value, key)
+  });
+
   const ordinalsOrder = await fetch('/api/order', {
     method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(orderSubmissionData)
+    body: orderSubmissionForm
   });
   console.log(JSON.stringify(ordinalsOrder));
 

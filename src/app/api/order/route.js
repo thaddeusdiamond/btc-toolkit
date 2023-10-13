@@ -1,31 +1,60 @@
-import { NextResponse } from 'next/server';
+'use server';
 
-import { b64encodedUrl, getHtmlPageFor } from '../../../utils/html.js';
+import * as fflate from 'fflate';
+
+import { NextResponse } from 'next/server';
+import { minify } from 'html-minifier-terser';
+
+import { recursiveViewerFor } from '../../../utils/collections.js';
+import { b64encodedUrl, getHtmlPageFor, COLLECTION_TYPE, GZIP_ENCODING } from '../../../utils/html.js';
 import { DEFAULT_ORDER_URL, DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 
 import prisma from '../../../prisma/prisma.mjs';
 
 const DEFAULT_FILE_NAME = 'recursive_inscription.html';
+const DEFAULT_GZIP_NAME = 'recursive_inscription.gz';
 
 export async function POST(req) {
   try {
-    const orderRequest = await req.json();
+    const formData = await req.formData();
+    const orderRequest = JSON.parse(formData.get('metadata'));
     console.log(`Processing order: ${JSON.stringify(orderRequest)}`);
+
+    const files = [];
     const contentType = orderRequest.contentType;
-    const rawHtml = getHtmlPageFor(contentType, orderRequest.codeValue);
-    const dataURL = b64encodedUrl(contentType, rawHtml);
-    const orderSubmissionData = {
-      files: [{
+    let finalPrice;
+    if (contentType === COLLECTION_TYPE) {
+      const additionalFiles = formData.getAll('additionalFiles[]');
+      for (let idx = 0; idx < additionalFiles.length; idx++) {
+        const additionalFile = additionalFiles[idx];
+        const fileData = await additionalFile.arrayBuffer();
+        const compressedString = fflate.strFromU8(fflate.gzipSync(new Uint8Array(fileData)), true);
+        const dataURL = b64encodedUrl(GZIP_ENCODING, compressedString);
+        files.push({
+          name: `${DEFAULT_GZIP_NAME}_${idx}`,
+          size: compressedString.length,
+          dataURL: dataURL
+        });
+      }
+    } else {
+      const rawHtml = getHtmlPageFor(contentType, orderRequest.codeValue);
+      const dataURL = b64encodedUrl(contentType, rawHtml);
+      files.push({
         name: DEFAULT_FILE_NAME,
         size: rawHtml.length,
         dataURL: dataURL
-      }],
+      });
+      finalPrice = 4000;
+    }
+
+    const orderSubmissionData = {
+      files: files,
       receiveAddress: orderRequest.walletAddr,
       fee: orderRequest.fee,
-      lowPostage: false,
+      lowPostage: true,
       rareSats: orderRequest.rareSats,
       referral: DEFAULT_REFERRAL_CODE,
-      additionalFee: 4000
+      additionalFee: finalPrice
     }
 
     console.log(JSON.stringify(orderSubmissionData));

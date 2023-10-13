@@ -1,9 +1,13 @@
+import { COLLECTION_PREVIEW } from '../utils/collections.js';
 import { getP5WrappedHtml } from '../utils/p5.js';
 
 export const HTML_TYPE = 'html';
 export const JSON_TYPE = 'json';
 export const SVG_TYPE = 'svg';
 export const P5_TYPE = 'p5';
+export const COLLECTION_TYPE = 'collection';
+
+export const GZIP_ENCODING = 'application/gzip';
 
 export function b64encodedUrl(contentType, plainHtml) {
   const encodedHtml = btoa(unescape(encodeURIComponent(plainHtml)));
@@ -31,11 +35,14 @@ export function mimeTypeFor(contentType) {
       return 'application/json';
     case P5_TYPE:
     case HTML_TYPE:
+    case COLLECTION_TYPE:
       return 'text/html';
     case SVG_TYPE:
       return 'image/svg+xml';
+    case GZIP_ENCODING:
+      return 'application/gzip';
     default:
-      throw `Unknown content type ${contentType}`;
+      throw `MIME: Unknown content type ${contentType}`;
   }
 }
 
@@ -47,7 +54,9 @@ export function getHtmlPageFor(contentType, plainCode) {
       return plainCode;
     case P5_TYPE:
       return getP5WrappedHtml(plainCode);
+    case COLLECTION_TYPE:
+      return COLLECTION_PREVIEW;
     default:
-      throw `Unknown content type ${contentType}`;
+      throw `HTML: Unknown content type ${contentType}`;
   }
 }

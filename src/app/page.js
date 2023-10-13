@@ -15,9 +15,10 @@ import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
+import { Compressor } from '../components/editor/compressor.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
 
-import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
+import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE, COLLECTION_TYPE } from '../utils/html.js';
 import { getHiroWalletAddress, defaultHiroLogo } from '../utils/hiro.js';
 import { getXVerseWalletAddress, defaultXVerseLogo } from '../utils/xverse.js';
 import { getUnisatWalletAddress, defaultUnisatLogo } from '../utils/unisat.js';
@@ -64,7 +65,7 @@ const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsSvg', DEFAULT_SVG_CODE],
   ['ordinalsJson', DEFAULT_JSON_CODE],
   ['ordinalsP5', DEFAULT_P5JS_CODE],
-  ['contentType', HTML_TYPE],
+  ['contentType', COLLECTION_TYPE],
   ['rareSats', 'random'],
   ['inscriptionSpeed', 'hourFee'],
   ['paymentMethod', 'invoice'],
@@ -125,7 +126,9 @@ export default function Home() {
       <div className="border-t border-white mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-opacity-20 py-5 lg:block">
         <div className="flex flex-wrap md:grid md:flex-nowrap justify-center md:grid-cols-12 items-center gap-8">
           <div className="w-full mx-auto inline-flex justify-center md:justify-start md:col-span-7">
-            <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
+            <GroupedButton groupKey="contentType" value={COLLECTION_TYPE} label="Collection" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => undefined} />
+            <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
@@ -147,6 +150,8 @@ export default function Home() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <div className="flex flex-wrap sm:flex-nowrap items-start gap-6" ref={containerRef}>
           <div className="relative" style={{width: codepadWidth}}>
+            <Compressor visible={orderData.get('contentType') === COLLECTION_TYPE} changeFunc={updateOrder} darkMode={darkMode} />
+
             <CodePad visible={orderData.get('contentType') === HTML_TYPE} codeValue={orderData.get('ordinalsHtml')} extensions={html()} darkMode={darkMode}
                      changeFunc={(value, viewUpdate) => {
                        updateOrder('ordinalsHtml', value);
@@ -221,8 +226,8 @@ export default function Home() {
                       <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>
-                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} dark:text-gray-300 mt-4 truncate text-ellipsis`}>
-                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue dark:text-tangz-blue-darker">{orderData.get("walletAddr")}</span>
+                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} dark:text-gray-300 mt-4 whitespace-wrap w-full`}>
+                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue dark:text-tangz-blue-darker break-all">{orderData.get("walletAddr")}</span>
                     </div>
                     <div className={`${orderData.get("paymentMethod") === 'invoice' ? '' : 'hidden'} mt-4`}>
                       <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." value={orderData.get("walletAddr")} setValue={value => updateOrder("walletAddr", value)} />
