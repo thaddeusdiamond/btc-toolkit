@@ -219,8 +219,8 @@ export default function Home() {
                       <GroupedButton groupKey="paymentMethod" value="invoice" img={undefined} label="Invoice" type="right" currentValue={orderData.get("paymentMethod")} setValue={updateOrder}
                                      onClickFunc={() => updateOrder("walletAddr", "")}/>
                     </span>
-                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} dark:text-gray-300 mt-4 truncate text-ellipsis`}>
-                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue dark:text-tangz-blue-darker">{orderData.get("walletAddr")}</span>
+                    <div className={`${orderData.get("paymentMethod") === 'invoice' ? 'hidden' : ''} dark:text-gray-300 mt-4 whitespace-wrap w-full`}>
+                      Inscriptions will be sent to <span className="font-semibold text-tangz-blue dark:text-tangz-blue-darker break-all">{orderData.get("walletAddr")}</span>
                     </div>
                     <div className={`${orderData.get("paymentMethod") === 'invoice' ? '' : 'hidden'} mt-4`}>
                       <TextInput id="wallet-addr" label="Ordinals Wallet Address" placeholder="bc1p..." value={orderData.get("walletAddr")} setValue={value => updateOrder("walletAddr", value)} />
