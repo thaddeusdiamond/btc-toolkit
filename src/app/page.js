@@ -16,9 +16,10 @@ import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
+import { ImageEditor } from '../components/editor/imageeditor.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
 
-import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
+import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE, IMG_TYPE } from '../utils/html.js';
 
 import './resizable.css';
 
@@ -57,11 +58,14 @@ const DEFAULT_JSON_CODE = `{
   }
 }`
 
+const DEFAULT_IMG_URL = `/content/01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0`;
+
 const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
   ['ordinalsSvg', DEFAULT_SVG_CODE],
   ['ordinalsJson', DEFAULT_JSON_CODE],
   ['ordinalsP5', DEFAULT_P5JS_CODE],
+  ['ordinalsImg', DEFAULT_IMG_URL],
   ['contentType', HTML_TYPE],
   ['rareSats', 'random'],
   ['inscriptionSpeed', 'hourFee'],
@@ -125,6 +129,8 @@ export default function Home() {
           <div className="w-full mx-auto inline-flex justify-center md:justify-start md:col-span-7">
             <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <GroupedButton groupKey="contentType" value={IMG_TYPE} label="Image" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={SVG_TYPE} label="SVG" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={JSON_TYPE} label="JSON" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
@@ -152,6 +158,14 @@ export default function Home() {
                          setOrdinalsPreviewFrame(value);
                        }
                      }} />
+
+            <ImageEditor visible={orderData.get('contentType') === IMG_TYPE} prefix={RECURSIVE_CONTENT_HOST} darkMode={darkMode}
+                    saveFunc={(editedImageObject, designState) => {
+                      updateOrder('ordinalsImg', editedImageObject.imageBase64)
+                      if (autoRefresh) {
+                        setOrdinalsPreviewFrame(editedImageObject.imageBase64);
+                      }
+                    }} />
 
             <CodePad visible={orderData.get('contentType') === SVG_TYPE} codeValue={orderData.get('ordinalsSvg')} extensions={xml()} darkMode={darkMode}
                     changeFunc={(value, viewUpdate) => {

@@ -14,10 +14,11 @@ export async function POST(req) {
     const contentType = orderRequest.contentType;
     const rawHtml = getHtmlPageFor(contentType, orderRequest.codeValue);
     const dataURL = b64encodedUrl(contentType, rawHtml);
+    const contentLength = new Buffer(dataURL.substr(dataURL.indexOf(',') + 1), 'base64').length;
     const orderSubmissionData = {
       files: [{
         name: DEFAULT_FILE_NAME,
-        size: rawHtml.length,
+        size: contentLength,
         dataURL: dataURL
       }],
       receiveAddress: orderRequest.walletAddr,
