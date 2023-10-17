@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Image from 'next/image';
 
 import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 
 import { TermsAndConditionsModal } from "../components/terms.jsx";
 
@@ -57,6 +58,7 @@ export default function RootLayout({ children }) {
             <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
           </TermsAndConditionsModal>
           {children}
+          <Analytics />
         </main>
         <Footer />
       </body>
