@@ -17,8 +17,9 @@ import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
+import { CheckList, getOrderFromEvent, getCheckedFromEvent } from '../components/editor/checklist.jsx';
 
-import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
+import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE, ORDERS_TYPE } from '../utils/html.js';
 
 import './resizable.css';
 
@@ -57,11 +58,16 @@ const DEFAULT_JSON_CODE = `{
   }
 }`
 
+const DEFAULT_ORDERS_JSON = `{
+  "01b00167726b0187388dd9362bb1fcb986e12419b01799951628bbb428df1deei0": true 
+}`
+
 const DEFAULT_ORDER_DATA = new Map([
   ['ordinalsHtml', DEFAULT_RECURSIVE_CODE],
   ['ordinalsSvg', DEFAULT_SVG_CODE],
   ['ordinalsJson', DEFAULT_JSON_CODE],
   ['ordinalsP5', DEFAULT_P5JS_CODE],
+  ['orders', DEFAULT_ORDERS_JSON],
   ['contentType', HTML_TYPE],
   ['rareSats', 'random'],
   ['inscriptionSpeed', 'hourFee'],
@@ -77,12 +83,26 @@ function recursiveExpandedHtmlFor(value) {
   return value.replaceAll(RECURSIVE_CONTENT_REGEXP, `${RECURSIVE_CONTENT_HOST}$&`);
 }
 
+function updateOrdersDict(orders, order, checked) {
+  const ordersDict = JSON.parse(orders);
+  ordersDict[order] = checked;
+  if (checked) {
+    for (const [key, _] of Object.entries(ordersDict)) {
+      if(key != order){
+        ordersDict[key] = false
+      }
+    }
+  } 
+  return JSON.stringify(ordersDict)
+}
+
 export default function Home() {
 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [orderData, setOrderData] = useState(DEFAULT_ORDER_DATA);
   const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(getCurrentCodeFromOrder(orderData));
   const [darkMode, setDarkMode] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(true);
 
   useEffect(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -121,7 +141,7 @@ export default function Home() {
       <ToastContainer theme={darkMode ? "dark" : "light"}/>
 
       <div className="border-t border-white mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-opacity-20 py-5 lg:block">
-        <div className="flex flex-wrap md:grid md:flex-nowrap justify-center md:grid-cols-12 items-center gap-8">
+        <div className="flex flex-wrap md:grid md:flex-nowrap justify-center md:grid-cols-12 items-center gap-6">
           <div className="w-full mx-auto inline-flex justify-center md:justify-start md:col-span-7">
             <GroupedButton groupKey="contentType" value={HTML_TYPE} label="HTML" type="left" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
@@ -131,6 +151,8 @@ export default function Home() {
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
             <GroupedButton groupKey="contentType" value={P5_TYPE} label="P5.js" type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
                            onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />
+            <GroupedButton groupKey="contentType" value={ORDERS_TYPE} label={walletConnected ? "Check Orders" : "Connect Wallet"} type="center" currentValue={orderData.get('contentType')} setValue={updateOrder}
+                           onClickFunc={() => setOrdinalsPreviewFrame(getCurrentCodeFromOrder(orderData))} />         
             <a href={`${DEFAULT_ORDER_URL}/?ref=${DEFAULT_REFERRAL_CODE}`} target="_blank">
               <GroupedButton groupKey="contentType" value="Other Files" label="Other Files" type="right" currentValue={false} setValue={() => undefined} />
             </a>
@@ -172,6 +194,16 @@ export default function Home() {
            <CodePad visible={orderData.get('contentType') === P5_TYPE} codeValue={orderData.get('ordinalsP5')} extensions={javascript()} darkMode={darkMode}
                    changeFunc={(value, viewUpdate) => {
                      updateOrder('ordinalsP5', value);
+                     if (autoRefresh) {
+                       setOrdinalsPreviewFrame(value);
+                     }
+                   }} />
+            <CheckList visible={orderData.get('contentType') === ORDERS_TYPE} codeValue={orderData.get('orders')}
+                   changeFunc={(event) => {
+                    const orderClicked = getOrderFromEvent(event);
+                    const orderChecked = getCheckedFromEvent(event);
+                    const value = updateOrdersDict(orderData.get('orders'), orderClicked, orderChecked);
+                    updateOrder('orders', value); 
                      if (autoRefresh) {
                        setOrdinalsPreviewFrame(value);
                      }

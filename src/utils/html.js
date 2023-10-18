@@ -1,13 +1,15 @@
 import { getP5WrappedHtml } from '../utils/p5.js';
+import { getOrdersWrappedHtml } from '../utils/orders.js'
 
 export const HTML_TYPE = 'html';
 export const JSON_TYPE = 'json';
 export const SVG_TYPE = 'svg';
 export const P5_TYPE = 'p5';
+export const ORDERS_TYPE = 'orders';
 
 export function b64encodedUrl(contentType, plainHtml) {
   const encodedHtml = btoa(unescape(encodeURIComponent(plainHtml)));
-  return `data:${mimeTypeFor(contentType)};base64,${encodedHtml}`;
+  return `data:${mimeTypeFor(contentType != ORDERS_TYPE ? contentType : HTML_TYPE)};base64,${encodedHtml}`;
 }
 
 export function getCurrentCodeFromOrder(orderData) {
@@ -20,6 +22,8 @@ export function getCurrentCodeFromOrder(orderData) {
       return orderData.get('ordinalsSvg');
     case P5_TYPE:
       return orderData.get('ordinalsP5');
+    case ORDERS_TYPE:
+      return orderData.get('orders');
     default:
       return '';
   }
@@ -28,6 +32,7 @@ export function getCurrentCodeFromOrder(orderData) {
 export function mimeTypeFor(contentType) {
   switch (contentType) {
     case JSON_TYPE:
+    case ORDERS_TYPE:
       return 'application/json';
     case P5_TYPE:
     case HTML_TYPE:
@@ -47,6 +52,8 @@ export function getHtmlPageFor(contentType, plainCode) {
       return plainCode;
     case P5_TYPE:
       return getP5WrappedHtml(plainCode);
+    case ORDERS_TYPE:
+      return getOrdersWrappedHtml(plainCode);
     default:
       throw `Unknown content type ${contentType}`;
   }
