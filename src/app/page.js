@@ -17,6 +17,7 @@ import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
 import { CodePad } from '../components/editor/codepad.jsx';
+import { OrdersTable } from '../components/orderstable/orderstable.js';
 
 import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE } from '../utils/html.js';
 
@@ -233,6 +234,26 @@ export default function Home() {
               </div>
             </div>
           </Resizable>
+        </div>
+      </div>
+      <div class="mx-auto max-w-3xl px-4 py-5 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div class="mx-auto max-w-7xl">
+          <div class="bg-gray-700 py-10 rounded-lg">
+            <div class="px-4 sm:px-6 lg:px-8">
+              <div class="sm:flex sm:items-center">
+                <div class="sm:flex-auto">
+                  <h1 class="text-base font-semibold leading-6 text-white text-center">My Orders</h1>
+                </div>
+              </div>
+              <div class="mt-8 flow-root">
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <OrdersTable />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
