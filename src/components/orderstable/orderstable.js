@@ -2,12 +2,11 @@ import {useState, useEffect} from 'react';
 
 const NUM_ROWS = 3;
 
-export function OrdersTable() {
+export function OrdersTable(address) {
   const [pages, setPages] = useState({});
   const [currentPage, setCurrentPage] = useState(0); // 0-indexed
   const [orders, setOrders] = useState(null);
-  const [ordersCount, setOrdersCount] = useState(0)
-
+  const [ordersCount, setOrdersCount] = useState(0);
   
   function updatePages(pageNumber, pageContent) {
     var currPages = pages;
@@ -19,7 +18,7 @@ export function OrdersTable() {
     var cursor, includeCount, initialPage;
     cursor = null;
     includeCount = true;
-    const apiCall = `/api/orders?cursor=${cursor}&take=${NUM_ROWS}&getCount=${includeCount}`
+    const apiCall = `/api/orders?address=${address}&cursor=${cursor}&take=${NUM_ROWS}&getCount=${includeCount}`
     const apiResponse = await fetch(apiCall);
     const responseJSON = await apiResponse.json();
     initialPage = responseJSON['orders'];
@@ -32,16 +31,16 @@ export function OrdersTable() {
   useEffect(initialLoadPage, []);
   
   async function loadNextPage() {
-    if((currentPage + 1)*NUM_ROWS >= ordersCount) {
+    if ((currentPage + 1) * NUM_ROWS >= ordersCount) {
       return;
     }
     const includeCount = false
     var cursor, nextPage;
     cursor = orders.slice(-1)[0]['id'];
-    if(`${currentPage+1}` in pages) {
+    if (`${currentPage + 1}` in pages) {
       nextPage = pages[`${currentPage+1}`];
     } else {
-      const apiCall = `/api/orders?cursor=${cursor}&take=${NUM_ROWS}&getCount=${includeCount}`
+      const apiCall = `/api/orders?address=${address}&cursor=${cursor}&take=${NUM_ROWS}&getCount=${includeCount}`
       const apiResponse = await fetch(apiCall);
       const responseJSON = await apiResponse.json();
       nextPage = responseJSON['orders'];
@@ -52,7 +51,7 @@ export function OrdersTable() {
   }
 
   function loadPreviousPage() {
-    if(currentPage == 0)  {
+    if (currentPage == 0)  {
       return;
     }
     setOrders(pages[`${currentPage-1}`]);
@@ -65,7 +64,6 @@ export function OrdersTable() {
       <thead>
         <tr class="bg-tangz-blue-darker">
           <th scope="col" class="px-3 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white">Order ID</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Receive Address</th>
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Price</th>
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Service Fee</th>
           <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Status</th>
@@ -79,7 +77,6 @@ export function OrdersTable() {
         {orders != null ? orders.map( (order) => (
           <tr class="bg-gray-700" key={order}>
             <td class="whitespace-nowrap px-3 py-4 pl-4 pr-3 text-sm font-medium text-white">{order['id']}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{order['receive_addr']}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{order['price']}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{order['service_fee']}</td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{order['status']}</td>
@@ -99,7 +96,7 @@ export function OrdersTable() {
       <div>
         <p class="text-sm text-gray-300">
           Showing
-          <span class="font-medium"> {(currentPage * NUM_ROWS) + 1} </span>
+          <span class="font-medium"> {ordersCount ? (currentPage * NUM_ROWS) + 1 : 0} </span>
           to
           <span class="font-medium"> {Math.min((currentPage + 1) * NUM_ROWS, ordersCount)} </span>
           of
@@ -115,7 +112,6 @@ export function OrdersTable() {
               <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
             </svg>
           </a>
-          {/* <!-- Current: "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600", Default: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" --> */}
           <a class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-300 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0">{currentPage+1}</a>
           <a onClick={loadNextPage} class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 hover:bg-tangz-blue-darker focus:z-20 focus:outline-offset-0">
             <span class="sr-only">Next</span>

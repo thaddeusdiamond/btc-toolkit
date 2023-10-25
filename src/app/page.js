@@ -248,7 +248,7 @@ export default function Home() {
               <div class="mt-8 flow-root">
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                   <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <OrdersTable />
+                    <OrdersTable address={orderData.get('walletAddr')}/>
                   </div>
                 </div>
               </div>
