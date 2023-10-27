@@ -238,17 +238,17 @@ export default function Home() {
       </div>
       <div class="mx-auto max-w-3xl px-4 py-5 sm:px-6 lg:max-w-7xl lg:px-8">
         <div class="mx-auto max-w-7xl">
-          <div class="bg-gray-700 py-10 rounded-lg">
+          <div class="rounded-lg shadow bg-white dark:bg-gray-700 py-8 rounded-lg">
             <div class="px-4 sm:px-6 lg:px-8">
               <div class="sm:flex sm:items-center">
                 <div class="sm:flex-auto">
-                  <h1 class="text-base font-semibold leading-6 text-white text-center">My Orders</h1>
+                  <h1 class="text-tangz-blue font-semibold leading-6 dark:text-white text-center">My Orders</h1>
                 </div>
               </div>
-              <div class="mt-8 flow-root">
+              <div class="mt-4 flow-root">
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                   <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <OrdersTable address={orderData.get('walletAddr')}/>
+                    <OrdersTable orderData={orderData} />
                   </div>
                 </div>
               </div>
