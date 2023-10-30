@@ -1,3 +1,5 @@
+'use client';
+
 import './globals.css'
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,11 +11,14 @@ import { Analytics } from '@vercel/analytics/react';
 
 import { TermsAndConditionsModal } from "../components/terms.jsx";
 
+import { UserProvider, useUser } from '@auth0/nextjs-auth0/client';
+
 const inter = Inter({ subsets: ['latin'] })
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 function Header() {
+  const { user, isLoading, _ } = useUser();
   return (
     <header className="bg-tangz-blue dark:bg-tangz-blue-darker py-4">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
@@ -28,6 +33,10 @@ function Header() {
             <h1 className="text-2xl text-white font-custom-titles w-72 md:w-full">Recursive Ordinals Builder</h1>
           </div>
           <div className="flex-shrink-0">
+            <a>{user ? `Hi, ${user.name}! ` : ""}</a>
+            <button type="button" className='bg-gray-700 hover:bg-gray-900 text-white cursor-pointer rounded px-4 py-2 text-sm text-center font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2'>
+              {user ? <a href="/api/auth/logout">Logout</a> : (isLoading ? "..." : <a href="/api/auth/login">Login</a>)}
+            </button>            
           </div>
         </div>
       </div>
@@ -51,17 +60,19 @@ function Footer() {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        <main className="pb-8">
-          <TermsAndConditionsModal id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
-            <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
-          </TermsAndConditionsModal>
-          {children}
-          <Analytics />
-        </main>
-        <Footer />
-      </body>
+      <UserProvider>
+        <body className={inter.className}>
+          <Header />
+          <main className="pb-8">
+            <TermsAndConditionsModal id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
+              <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
+            </TermsAndConditionsModal>
+            {children}
+            <Analytics />
+          </main>
+          <Footer />
+        </body>
+      </UserProvider>
     </html>
   )
 }
