@@ -10,6 +10,8 @@ import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 
 import { TermsAndConditionsModal } from "../components/terms.jsx";
+import { SimpleButton } from '../components/widgets/buttons.jsx';
+
 
 import { UserProvider, useUser } from '@auth0/nextjs-auth0/client';
 
@@ -33,10 +35,8 @@ function Header() {
             <h1 className="text-2xl text-white font-custom-titles w-72 md:w-full">Recursive Ordinals Builder</h1>
           </div>
           <div className="flex-shrink-0">
-            <a>{user ? `Hi, ${user.name}! ` : ""}</a>
-            <button type="button" className='bg-gray-700 hover:bg-gray-900 text-white cursor-pointer rounded px-4 py-2 text-sm text-center font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2'>
-              {user ? <a href="/api/auth/logout">Logout</a> : (isLoading ? "..." : <a href="/api/auth/login">Login</a>)}
-            </button>            
+            <a class="text-gray-50 dark:text-gray-200 text-xs p-6">{user ? `Hi, ${user.name}! ` : ""}</a>
+            <SimpleButton label={isLoading ? "..." : (user ? "Logout" : "Login")} onClick={() => window.location.replace(`/api/auth/${user ? "logout" : "login"}`)} active={!isLoading} extraClasses="outline outline-2"/>        
           </div>
         </div>
       </div>
