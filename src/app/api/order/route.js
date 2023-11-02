@@ -1,6 +1,9 @@
+'use server';
+
 import { NextResponse } from 'next/server';
 
 import { b64encodedUrl, getHtmlPageFor } from '../../../utils/html.js';
+import { getFee } from '../../../utils/price.js';
 import { DEFAULT_ORDER_URL, DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 
 import prisma from '../../../prisma/prisma.mjs';
@@ -15,18 +18,23 @@ export async function POST(req) {
     const rawHtml = getHtmlPageFor(contentType, orderRequest.codeValue);
     const dataURL = b64encodedUrl(contentType, rawHtml);
     const contentLength = new Buffer(dataURL.substr(dataURL.indexOf(',') + 1), 'base64').length;
+    const receiveAddress = orderRequest.walletAddr;
     const orderSubmissionData = {
       files: [{
         name: DEFAULT_FILE_NAME,
         size: contentLength,
         dataURL: dataURL
       }],
-      receiveAddress: orderRequest.walletAddr,
+      receiveAddress: receiveAddress,
       fee: orderRequest.fee,
       lowPostage: false,
       rareSats: orderRequest.rareSats,
-      referral: DEFAULT_REFERRAL_CODE,
-      additionalFee: 4000
+      referral: DEFAULT_REFERRAL_CODE
+    }
+
+    const additionalFee = await getFee(receiveAddress);
+    if (additionalFee > 0) {
+      orderSubmissionData.additionalFee = additionalFee;
     }
 
     console.log(JSON.stringify(orderSubmissionData));

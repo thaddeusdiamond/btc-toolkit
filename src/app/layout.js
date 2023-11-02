@@ -47,10 +47,13 @@ function Header() {
 function Footer() {
   return (
     <footer>
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-        <div className="flex flex-wrap md:flex-nowrap justify-between border-t border-gray-200 py-8 gap-4 text-center text-sm text-gray-500">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-t border-gray-200 w-full py-4 text-center text-sm text-gray-500">
+        <div className="mx-auto mb-4 italic">
+          Please note, we charge 4,000 sats (0.00004 BTC) per inscription as a developer fee. Certain collections, such as the <a href="https://otternals.io/mint" target="_blank" className="text-tangz-blue hover:underline">Otternals</a>, may receive discounts on these costs.
+        </div>
+        <div className="flex flex-wrap md:flex-nowrap justify-between gap-4">
           <span className="block sm:inline mx-auto md:mx-0">&copy; 2023 Wild Tangz. All rights reserved.</span>
-          <span className="block sm:inline mx-auto md:mx-0">Questions? Get in touch via <a href="https://discord.gg/wildtangz" className="text-tangz-blue hover:underline">Wild Tangz Discord</a></span>
+          <span className="block sm:inline mx-auto md:mx-0">Questions? Get in touch via <a href="https://discord.gg/wildtangz" target="_blank" className="text-tangz-blue hover:underline">Wild Tangz Discord</a></span>
         </div>
       </div>
     </footer>
@@ -63,7 +66,7 @@ export default function RootLayout({ children }) {
       <UserProvider>
         <body className={inter.className}>
           <Header />
-          <main className="pb-8">
+          <main className="pb-4">
             <TermsAndConditionsModal id="btc-toolkit-info-firsttimer" header="Please Read Carefully" confirmation="I Understand" expiration={TWO_WEEKS_MS}>
               <span>The following interface attempts its best to render a preview of your recursive Ordinal.  Please, CAREFULLY inspect the code you enter below.  There are no refunds once orders are processed.</span>
             </TermsAndConditionsModal>
