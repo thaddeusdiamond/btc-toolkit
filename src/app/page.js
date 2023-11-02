@@ -25,7 +25,7 @@ import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON
 import './resizable.css';
 
 const RECURSIVE_CONTENT_REGEXP = /\/content\//g;
-const RECURSIVE_CONTENT_HOST = 'https://ord-mirror.magiceden.dev'
+const RECURSIVE_CONTENT_HOST = 'https://ordinals.com'
 
 const DEFAULT_RECURSIVE_CODE = `<!DOCTYPE html>
 <html lang="en">

@@ -3,15 +3,15 @@ import { NextResponse } from 'next/server'
 export function middleware(request) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const cspHeader = `
-    default-src 'self' https://ord-mirror.magiceden.dev 'unsafe-eval' 'unsafe-inline';
-    script-src-elem 'self' 'unsafe-eval' 'unsafe-inline' https://ord-mirror.magiceden.dev blob:;
+    default-src 'self' https://ordinals.com 'unsafe-eval' 'unsafe-inline';
+    script-src-elem 'self' 'unsafe-eval' 'unsafe-inline' https://ordinals.com blob:;
     style-src 'self' https://fonts.googleapis.com 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline';
     font-src 'self' https://fonts.gstatic.com/;
-    img-src 'self' https://ord-mirror.magiceden.dev data: blob:;
-    frame-src 'self' https://ord-mirror.magiceden.dev data:;
-    connect-src 'self' https://ord-mirror.magiceden.dev https://i18n.ultrafast.io https://mempool.space blob: data: ;
-    media-src 'self' https://ord-mirror.magiceden.dev blob: data: ;
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ord-mirror.magiceden.dev 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline';`
+    img-src 'self' https://ordinals.com data: blob:;
+    frame-src 'self' https://ordinals.com data:;
+    connect-src 'self' https://vitals.vercel-insights.com https://ordinals.com https://i18n.ultrafast.io https://mempool.space blob: data: ;
+    media-src 'self' https://ordinals.com blob: data: ;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ordinals.com 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline';`
 
   const requestHeaders = new Headers(request.headers)
 
