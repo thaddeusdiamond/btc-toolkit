@@ -61,7 +61,8 @@ export async function POST(req) {
         receive_addr: orderSubmission.receiveAddress,
         price: orderSubmission.charge.amount,
         status: orderSubmission.charge.status,
-        service_fee: orderSubmission.serviceFee
+        service_fee: orderSubmission.serviceFee,
+        user: orderRequest.user
       }
     })
     console.log(`Created a new order (unpaid): ${JSON.stringify(orderCreate)}`);

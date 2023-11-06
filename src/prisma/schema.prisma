@@ -16,5 +16,6 @@ model Order {
   price         Int
   service_fee   Int
   status        String
+  user          String   @default("")
   createdAt     DateTime @default(now()) @map("created_at")
 }

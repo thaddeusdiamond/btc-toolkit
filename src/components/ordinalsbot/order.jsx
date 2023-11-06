@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { validate as btc_validate } from 'bitcoin-address-validation';
 import { Wallets, Mempool } from 'btc-dapp-js';
 import { useState, useEffect } from 'react';
@@ -42,7 +43,7 @@ async function findOrderStatus(id, callbackFunction) {
   }
 }
 
-async function placeOrderFor(orderData) {
+async function placeOrderFor(orderData, user) {
   console.log(orderData);
   const walletAddr = orderData.get('walletAddr');
   if (!btc_validate(walletAddr, 'mainnet')) {
@@ -51,13 +52,15 @@ async function placeOrderFor(orderData) {
 
   const inscriptionSpeed = orderData.get('inscriptionSpeed');
   const fee = await Mempool.getFeesFor(inscriptionSpeed);
+  const userId = user?.sub || '';
 
   const orderSubmissionData = {
     codeValue: getCurrentCodeFromOrder(orderData),
     contentType: orderData.get('contentType'),
     rareSats: orderData.get('rareSats'),
     walletAddr: walletAddr,
-    fee: fee
+    fee: fee,
+    user: userId
   }
   const ordinalsOrder = await fetch('/api/order', {
     method: "POST",
@@ -216,6 +219,8 @@ function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, s
   const [inscribeActive, setInscribeActive] = useState(true);
   const [orderStatusChecker, setOrderStatusChecker] = useState(-1);
 
+  const { user, isLoading, _ } = useUser();
+
   return (
     <SimpleButton label="Inscribe" active={inscribeActive} onClick={async () => {
         if (orderStatusChecker != -1) {
@@ -227,7 +232,7 @@ function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, s
         setReceiptVisible(true);
         setInscribeActive(false);
         try {
-          const orderInformation = await placeOrderFor(orderData);
+          const orderInformation = await placeOrderFor(orderData, user);
           setReceipt(orderInformation);
 
           const updatedOrderStatus = await attemptTransactionFor(orderData, orderInformation);
