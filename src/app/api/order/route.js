@@ -57,7 +57,7 @@ export async function POST(req) {
 
     const orderCreate = await prisma.order.create({
       data: {
-        id: orderSubmission.charge.id,
+        id: orderSubmission.id,
         receive_addr: orderSubmission.receiveAddress,
         price: orderSubmission.charge.amount,
         status: orderSubmission.charge.status,
@@ -67,7 +67,7 @@ export async function POST(req) {
     })
     console.log(`Created a new order (unpaid): ${JSON.stringify(orderCreate)}`);
 
-    return NextResponse.json(orderSubmission, {status: 200, statusText: `Successfully placed order ${orderSubmission.charge.id}`});
+    return NextResponse.json(orderSubmission, {status: 200, statusText: `Successfully placed order ${orderSubmission.id}`});
   } catch (err) {
     console.error(err);
     return NextResponse.json(err, {status: 500, statusText: err});
