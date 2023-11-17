@@ -17,7 +17,6 @@ export async function GET({nextUrl: {searchParams}}) {
     const take = searchParams.has('take') ? parseInt(searchParams.get('take')) : DEFAULT_TAKE;
     var orders;
     if (cursor != 'null') {
-      console.log("here");
       orders = await prisma.order.findMany({
         'take': take,
         'skip': 1,

@@ -11,7 +11,7 @@ import { Analytics } from '@vercel/analytics/react';
 
 import { TermsAndConditionsModal } from "../components/terms.jsx";
 import { SimpleButton } from '../components/widgets/buttons.jsx';
-
+import { DEFAULT_PRICE, BTC_TO_SATS } from '../utils/price.js';
 
 import { UserProvider, useUser } from '@auth0/nextjs-auth0/client';
 
@@ -36,7 +36,7 @@ function Header() {
           </div>
           <div className="flex-shrink-0">
             <a class="text-gray-50 dark:text-gray-200 text-xs p-6">{user ? `Hi, ${user.name}! ` : ""}</a>
-            <SimpleButton label={isLoading ? "..." : (user ? "Logout" : "Login")} onClick={() => window.location.replace(`/api/auth/${user ? "logout" : "login"}`)} active={!isLoading} extraClasses="outline outline-2"/>        
+            <SimpleButton label={isLoading ? "..." : (user ? "Logout" : "Login")} onClick={() => window.location.replace(`/api/auth/${user ? "logout" : "login"}`)} active={!isLoading} extraClasses="outline outline-2"/>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ function Footer() {
     <footer>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8 border-t border-gray-200 w-full py-4 text-center text-sm text-gray-500">
         <div className="mx-auto mb-4 italic">
-          Please note, we charge 4,000 sats (0.00004 BTC) per inscription as a developer fee. Certain collections, such as the <a href="https://otternals.io/mint" target="_blank" className="text-tangz-blue hover:underline">Otternals</a>, may receive discounts on these costs.
+          Please note, we charge {DEFAULT_PRICE.toLocaleString()} sats ({DEFAULT_PRICE / BTC_TO_SATS} BTC) per inscription as a developer fee. Certain collections, such as the <a href="https://otternals.io/mint" target="_blank" className="text-tangz-blue hover:underline">Otternals</a>, may receive discounts on these costs.
         </div>
         <div className="flex flex-wrap md:flex-nowrap justify-between gap-4">
           <span className="block sm:inline mx-auto md:mx-0">&copy; 2023 Wild Tangz. All rights reserved.</span>

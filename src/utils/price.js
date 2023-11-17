@@ -1,5 +1,7 @@
 const COLLECTION_DISCOUNTS = process.env.COLLECTION_DISCOUNTS ? JSON.parse(process.env.COLLECTION_DISCOUNTS) : [];
-const DEFAULT_PRICE = 4000;
+
+export const DEFAULT_PRICE = 10000;
+export const BTC_TO_SATS = 100000000;
 
 function getCollectionUrl(symbol, owner) {
   return `https://api-mainnet.magiceden.dev/v2/ord/btc/tokens?collectionSymbol=${symbol}&ownerAddress=${owner}&showAll=true&sortBy=priceAsc`;
