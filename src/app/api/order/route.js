@@ -2,9 +2,9 @@
 
 import { NextResponse } from 'next/server';
 
+import { DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 import { b64encodedUrl, getHtmlPageFor } from '../../../utils/html.js';
 import { getFee } from '../../../utils/price.js';
-import { DEFAULT_ORDER_URL, DEFAULT_ORDER_API, DEFAULT_REFERRAL_CODE } from '../../../components/ordinalsbot/config.js';
 
 import prisma from '../../../prisma/prisma.mjs';
 

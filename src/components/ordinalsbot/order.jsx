@@ -2,12 +2,12 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { validate as btc_validate } from 'bitcoin-address-validation';
-import { Wallets, Mempool } from 'btc-dapp-js';
-import { useState, useEffect } from 'react';
+import { Mempool, Wallets } from 'btc-dapp-js';
+import { useState } from 'react';
 
-import { getCurrentCodeFromOrder } from '../../utils/html.js';
+import { PAID, PENDING, UNPAID } from '../../components/ordinalsbot/config.js';
 import { CancelButton, SimpleButton } from '../../components/widgets/buttons.jsx';
-import { PENDING, UNPAID, PAID } from '../../components/ordinalsbot/config.js';
+import { getCurrentCodeFromOrder } from '../../utils/html.js';
 
 const SATOSHI_TO_BTC = 100000000.0;
 const RETRY_INTERVAL = 15000;
