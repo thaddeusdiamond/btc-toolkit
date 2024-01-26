@@ -1,26 +1,24 @@
 'use client';
 
-import Image from 'next/image'
-
-import { useState, useEffect, useRef } from 'react';
-import { Resizable } from 'react-resizable';
-import { ToastContainer, toast } from 'react-toastify';
+import { html } from '@codemirror/lang-html';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
-import { html } from '@codemirror/lang-html';
 import { xml } from '@codemirror/lang-xml';
 import { Wallets } from 'btc-dapp-js';
+import { useEffect, useRef, useState } from 'react';
+import { Resizable } from 'react-resizable';
+import { ToastContainer } from 'react-toastify';
 
-import { DEFAULT_ORDER_URL, DEFAULT_REFERRAL_CODE } from '../components/ordinalsbot/config.js';
+import { CodePad } from '../components/editor/codepad.jsx';
+import { ImageEditor } from '../components/editor/imageeditor.jsx';
+import { OrdersTable } from '../components/orderstable/orderstable.js';
+import { DEFAULT_ORDER_URL, DEFAULT_REFERRAL_CODE, ORDINALSBOT_API } from '../components/ordinalsbot/config.js';
 import { OrdinalsBotOrder } from '../components/ordinalsbot/order.jsx';
 import { GroupedButton, SimpleButton } from '../components/widgets/buttons.jsx';
 import { TextInput } from '../components/widgets/input.jsx';
 import { Toggle } from '../components/widgets/toggle.jsx';
-import { ImageEditor } from '../components/editor/imageeditor.jsx';
-import { CodePad } from '../components/editor/codepad.jsx';
-import { OrdersTable } from '../components/orderstable/orderstable.js';
 
-import { b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor, HTML_TYPE, JSON_TYPE, SVG_TYPE, P5_TYPE, IMG_TYPE } from '../utils/html.js';
+import { HTML_TYPE, IMG_TYPE, JSON_TYPE, P5_TYPE, SVG_TYPE, b64encodedUrl, getCurrentCodeFromOrder, getHtmlPageFor } from '../utils/html.js';
 
 import './resizable.css';
 
@@ -88,6 +86,21 @@ export default function Home() {
   const [orderData, setOrderData] = useState(DEFAULT_ORDER_DATA);
   const [ordinalsPreviewFrame, setOrdinalsPreviewFrame] = useState(getCurrentCodeFromOrder(orderData));
   const [darkMode, setDarkMode] = useState(false);
+
+  const [rareSatsInventory, setRareSatsInventory] = useState(undefined);
+  useEffect(() => {
+    const updateRareSatsInventory = async () => {
+      console.log((`${ORDINALSBOT_API}/inventory`))
+      try {
+        const inventory = await fetch(`${ORDINALSBOT_API}/inventory`).then(res => res.json());
+        const availableInventory = Object.keys(inventory).filter(type => inventory[type].amount > 0)
+        setRareSatsInventory(availableInventory);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    updateRareSatsInventory();
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -206,11 +219,9 @@ export default function Home() {
                   <div className="mt-4 w-full">
                     <h4 className="text-tangz-blue font-semibold mb-2 dark:text-gray-300">Rare Sats</h4>
                     <span className="grid grid-cols-5 rounded-md shadow-sm">
-                      <GroupedButton groupKey="rareSats" value="2009" label="2009" type="left" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
-                      <GroupedButton groupKey="rareSats" value="2010" label="2010" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
-                      <GroupedButton groupKey="rareSats" value="2011" label="2011" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
-                      <GroupedButton groupKey="rareSats" value="block78" label="Block 78" type="center" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
-                      <GroupedButton groupKey="rareSats" value="random" label="Random" type="right" currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      {rareSatsInventory && rareSatsInventory.map((rareSats, idx) => (
+                        <GroupedButton key={rareSats} groupKey="rareSats" value={rareSats} label={rareSats} type={(idx === 0) ? "left" : (idx < rareSatsInventory.length - 1) ? "center" : "right"} currentValue={orderData.get("rareSats")} setValue={updateOrder} />
+                      ))}
                     </span>
                   </div>
                   <div className="mt-4 w-full">

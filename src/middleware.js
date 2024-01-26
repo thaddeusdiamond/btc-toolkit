@@ -9,7 +9,7 @@ export function middleware(request) {
     font-src 'self' https://fonts.gstatic.com/;
     img-src 'self' https://ordinals.com data: blob:;
     frame-src 'self' https://ordinals.com data:;
-    connect-src 'self' https://vitals.vercel-insights.com https://ordinals.com https://i18n.ultrafast.io https://mempool.space blob: data: ;
+    connect-src 'self' https://vitals.vercel-insights.com https://ordinals.com https://i18n.ultrafast.io https://mempool.space https://api.ordinalsbot.com blob: data: ;
     media-src 'self' https://ordinals.com blob: data: ;
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ordinals.com 'unsafe-eval' 'unsafe-hashes' 'unsafe-inline';`
 
