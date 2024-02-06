@@ -1,6 +1,70 @@
 import { NextResponse } from 'next/server'
 
+const COUNTRY_WHITELIST = [
+  "AT", // Austria
+  "AU", // Australia
+  "BB", // Barbados
+  "BE", // Belgium
+  "BG", // Bulgaria
+  "BR", // Brazil
+  "BS", // Bahamas
+  "CA", // Canada
+  "CH", // Switzerland
+  "CY", // Cyprus
+  "CZ", // Czech Republic
+  "DE", // Germany
+  "DK", // Denmark
+  "DO", // Dominican Republic
+  "EE", // Estonia
+  "ES", // Spain
+  "FI", // Finland
+  "FR", // France
+  "GB", // Great Britain (UK)
+  "GI", // Gibraltar
+  "GR", // Greece
+  "HK", // Hong Kong
+  "HR", // Croatia
+  "HU", // Hungary
+  "ID", // Indonesia
+  "IE", // Ireland
+  "IL", // Israel
+  "IN", // India
+  "IS", // Iceland
+  "IT", // Italy
+  "JM", // Jamaica
+  "JP", // Japan
+  "KR", // South Korea
+  "LI", // Liechtenstein
+  "LT", // Lithuania
+  "LU", // Luxembourg
+  "LV", // Latvia
+  "MT", // Malta
+  "MX", // Mexico
+  "MY", // Malaysia
+  "NG", // Nigeria
+  "NL", // Netherlands
+  "NO", // Norway
+  "NZ", // New Zealand
+  "PH", // Philippines
+  "PL", // Poland
+  "PR", // Puerto Rico
+  "PT", // Portugal
+  "RO", // Romania
+  "SE", // Sweden
+  "SG", // Singapore
+  "SI", // Slovenia
+  "SK", // Slovakia
+  "US", // United States
+  "VN", // Viet Nam
+  "ZA", // South Africa
+];
+
 export function middleware(request) {
+  const country = request.geo?.country;
+  if (process.env.NODE_ENV !== 'development' && !COUNTRY_WHITELIST.includes(country)) {
+    return new Response('Blocked in your region', { status: 451 });
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const cspHeader = `
     default-src 'self' https://ordinals.com 'unsafe-eval' 'unsafe-inline';
