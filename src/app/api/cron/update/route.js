@@ -41,6 +41,7 @@ export async function GET() {
           where: { id: unpaidOrder.id },
           data: { status: unpaidOrderStatus.charge.status }
         });
+        console.log(updatedOrders);
         if (updatedOrders !== 1) {
           console.error(`Could not update order status for order "${unpaidOrder.id}"`);
         }

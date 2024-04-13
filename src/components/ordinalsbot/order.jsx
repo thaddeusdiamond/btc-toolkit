@@ -22,6 +22,7 @@ async function attemptTransactionFor(orderData, orderInformation) {
       case Wallets.UNISAT_WALLET:
       case Wallets.XVERSE_WALLET:
         await Wallets.sendBtc(walletProvider, orderInformation.address, orderInformation.amount);
+        break;
       default:
         throw `Unknown order payment method: ${orderData.get('paymentMethod')}`;
     }
@@ -76,7 +77,7 @@ async function placeOrderFor(orderData, user) {
   }
 
   const ordinalsOrderResult = await ordinalsOrder.json();
-  return ordinalsOrderResult.charge;
+  return ordinalsOrderResult;
 }
 
 function normalizedErrorMessage(error) {
@@ -233,12 +234,11 @@ function OrdinalsBotSubmit({ orderData, setReceiptVisible, setTransactionSent, s
         setInscribeActive(false);
         try {
           const orderInformation = await placeOrderFor(orderData, user);
-          setReceipt(orderInformation);
+          setReceipt(orderInformation.charge);
 
-          const updatedOrderStatus = await attemptTransactionFor(orderData, orderInformation);
+          const updatedOrderStatus = await attemptTransactionFor(orderData, orderInformation.charge);
           setOrderStatus(updatedOrderStatus);
           setOrderStatusChecker(setInterval(() => findOrderStatus(orderInformation.id, setOrderStatus), RETRY_INTERVAL));
-          setReceipt(orderInformation);
         } catch (err) {
           console.log(err);
           setReceipt({status: 'error', err: err});
