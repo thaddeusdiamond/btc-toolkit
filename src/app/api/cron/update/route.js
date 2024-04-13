@@ -4,11 +4,13 @@ import prisma from '../../../../prisma/prisma.mjs';
 
 import { DEFAULT_ORDER_API, UNPAID } from '../../../../components/ordinalsbot/config.js';
 
+export const maxDuration = 300;
+
 const sleep = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms));
 
-const ONE_SEC_MS = 1000;
-const BACKOFF_MS = 5 * ONE_SEC_MS;
-const ONE_DAY_MS = 24 * 60 * 60 * ONE_SEC_MS;
+const TENTH_SEC_MS = 100;
+const BACKOFF_MS = 5 * TENTH_SEC_MS;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function GET() {
   try {
@@ -24,7 +26,7 @@ export async function GET() {
 
     var updatedOrders = 0;
     for (const unpaidOrder of unpaidOrders) {
-      await sleep(ONE_SEC_MS);
+      await sleep(TENTH_SEC_MS);
       console.log(`Retrieving status for "${unpaidOrder.id}"`);
       const unpaidOrderStatusReq = await fetch(`${DEFAULT_ORDER_API}?id=${unpaidOrder.id}`);
       if (unpaidOrderStatusReq.status !== 200) {
